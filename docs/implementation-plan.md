@@ -14,7 +14,7 @@ Four decisions are recorded in [docs/adr](./adr) and are settled. Each has a "do
 | Hosting | Railway — app and database |
 | Database | Postgres on Railway, Drizzle ORM |
 | Real-time | SSE route handler, driven by Postgres `LISTEN/NOTIFY` |
-| Auth | Clerk, one shared account, long session lifetime |
+| Auth | Clerk Restricted mode, one predefined account, exact user ID check |
 | Styling | Tailwind + shadcn/ui |
 | Drag & drop | `dnd-kit` — pointer + touch sensors; the HTML5 drag API does not work on mobile |
 | PWA | Manifest, icons, `theme-color`, `display: standalone`. No service worker |
@@ -52,7 +52,7 @@ A Task never Ticked is Due. A Run for Routine R presents every non-archived Task
 
 ### 1 — Scaffold
 
-Next.js on Railway, Postgres provisioned, Drizzle with migrations, Clerk gating every route, manifest and icon set, and a deploy that installs to an Android tablet and an iPhone home screen and looks like an app. Confirm Clerk sessions survive weeks of tablet idling before building anything on top — everything else assumes it.
+Next.js on Railway, Postgres provisioned, Drizzle with migrations, Clerk gating every route, manifest and icon set, and a deploy that installs to an Android tablet and an iPhone home screen and looks like an app. The Clerk Hobby plan has a fixed seven-day session lifetime. Confirm that the repeat sign-in experience is acceptable on the tablet and phone before building anything on top.
 
 ### 2 — Import
 

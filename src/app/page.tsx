@@ -1,5 +1,4 @@
 import { UserButton } from "@clerk/nextjs";
-import { auth } from "@clerk/nextjs/server";
 import {
   CalendarDays,
   CircleUserRound,
@@ -16,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { dictionaries } from "@/i18n/config";
 import { getRequestLocale } from "@/i18n/server";
 import { allowsLocalPreview } from "@/lib/local-preview";
+import { requireAllowedUser } from "@/auth/server";
 
 const routines = [
   { key: "weekly", iconTone: "sky", shape: "islandWeekly" },
@@ -27,7 +27,7 @@ export default async function HomePage() {
   const isLocalPreview = allowsLocalPreview();
 
   if (!isLocalPreview) {
-    await auth.protect();
+    await requireAllowedUser();
   }
 
   const locale = await getRequestLocale();

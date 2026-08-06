@@ -6,7 +6,8 @@ The app serves a single household of two, from a phone and a tablet at the same 
 
 - **No user foreign key anywhere.** Every query and every real-time subscription is unscoped.
 - **Ticks record when, not who.** Per-person statistics are impossible by construction, deliberately: the only people-shaped number this app could produce is "who cleans less", which invites competition, unlike the room- and task-shaped numbers in Statistics.
-- **Clerk sessions need a long lifetime**, so that a wall-mounted tablet stays signed in between cleans rather than demanding credentials from whoever picks it up.
+- **Clerk uses Restricted sign-up mode.** An administrator creates the one account. The app also compares the signed-in Clerk user ID with its configured allowed user ID.
+- **The Clerk Hobby plan fixes sessions at seven days.** The repository owner accepted repeat sign-in after this limit instead of a paid custom session lifetime. Test this flow on the tablet and phone before phase 2.
 - **Adding real users later is a genuine migration** and would not recover history. Accepted knowingly.
 
 ## Settled, do not re-open

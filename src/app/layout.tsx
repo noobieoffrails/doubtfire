@@ -19,6 +19,18 @@ export const metadata: Metadata = {
   },
   description: "A calm shared place for household cleaning routines.",
   applicationName: "Doubtfire",
+  robots: {
+    follow: false,
+    index: false,
+    nocache: true,
+    googleBot: {
+      follow: false,
+      index: false,
+      noarchive: true,
+      noimageindex: true,
+      nosnippet: true,
+    },
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
