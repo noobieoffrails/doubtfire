@@ -9,25 +9,25 @@ importers:
   .:
     dependencies:
       '@clerk/localizations':
-        specifier: ^4.14.1
+        specifier: 4.14.1
         version: 4.14.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@clerk/nextjs':
-        specifier: ^7.7.0
+        specifier: 7.7.0
         version: 7.7.0(next@16.3.0(@babel/core@7.29.7)(@types/node@20.19.43)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       clsx:
-        specifier: ^2.1.1
+        specifier: 2.1.1
         version: 2.1.1
       drizzle-orm:
-        specifier: ^0.45.2
+        specifier: 0.45.2
         version: 0.45.2(postgres@3.4.9)
       lucide-react:
-        specifier: ^1.29.0
+        specifier: 1.29.0
         version: 1.29.0(react@19.2.8)
       next:
         specifier: 16.3.0
         version: 16.3.0(@babel/core@7.29.7)(@types/node@20.19.43)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       postgres:
-        specifier: ^3.4.9
+        specifier: 3.4.9
         version: 3.4.9
       react:
         specifier: 19.2.8
@@ -36,44 +36,44 @@ importers:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
       tailwind-merge:
-        specifier: ^3.6.0
+        specifier: 3.6.0
         version: 3.6.0
       zod:
-        specifier: ^4.4.3
+        specifier: 4.4.3
         version: 4.4.3
     devDependencies:
       '@tailwindcss/postcss':
-        specifier: ^4
+        specifier: 4.3.3
         version: 4.3.3
       '@types/node':
-        specifier: ^20
+        specifier: 20.19.43
         version: 20.19.43
       '@types/react':
-        specifier: ^19
+        specifier: 19.2.18
         version: 19.2.18
       '@types/react-dom':
-        specifier: ^19
+        specifier: 19.2.4
         version: 19.2.4(@types/react@19.2.18)
       dotenv:
-        specifier: ^17.4.2
+        specifier: 17.4.2
         version: 17.4.2
       drizzle-kit:
-        specifier: ^0.31.10
+        specifier: 0.31.10
         version: 0.31.10
       eslint:
-        specifier: ^9
+        specifier: 9.39.5
         version: 9.39.5(jiti@2.7.0)
       eslint-config-next:
         specifier: 16.3.0
         version: 16.3.0(@typescript-eslint/parser@8.66.0(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3))(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
       tailwindcss:
-        specifier: ^4
+        specifier: 4.3.3
         version: 4.3.3
       typescript:
-        specifier: ^5
+        specifier: 5.9.3
         version: 5.9.3
       vitest:
-        specifier: ^4.1.10
+        specifier: 4.1.10
         version: 4.1.10(@types/node@20.19.43)(vite@8.2.1(@types/node@20.19.43)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.9))
 
 packages:
