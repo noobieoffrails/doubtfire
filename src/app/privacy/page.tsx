@@ -4,10 +4,6 @@ import { LanguageToggle } from "@/components/language-toggle";
 import { dictionaries, type Locale } from "@/i18n/config";
 import { getRequestLocale } from "@/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Cookie information",
-};
-
 const privacyCopy = {
   en: {
     back: "Return to sign in",
@@ -42,6 +38,12 @@ const privacyCopy = {
     title: "Tietoa evästeistä",
   },
 } as const satisfies Record<Locale, Record<string, string>>;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getRequestLocale();
+
+  return { title: privacyCopy[locale].title };
+}
 
 export default async function PrivacyPage() {
   const locale = await getRequestLocale();

@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { dictionaries } from "@/i18n/config";
 import { getRequestLocale } from "@/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Access denied",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getRequestLocale();
+
+  return { title: dictionaries[locale].accessDeniedTitle };
+}
 
 export default async function AccessDeniedPage() {
   const locale = await getRequestLocale();

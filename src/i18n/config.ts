@@ -14,6 +14,7 @@ export const dictionaries = {
   en: {
     accessDeniedDescription: "Sign out and use the predefined household account.",
     accessDeniedHeading: "This account cannot open Doubtfire.",
+    accessDeniedTitle: "Access denied",
     account: "Account",
     changeLanguage: "Change the language to Finnish",
     cookieInformation: "Cookie information",
@@ -39,6 +40,7 @@ export const dictionaries = {
   fi: {
     accessDeniedDescription: "Kirjaudu ulos ja käytä kodille ennalta määritettyä tiliä.",
     accessDeniedHeading: "Tällä tilillä ei voi avata Doubtfirea.",
+    accessDeniedTitle: "Pääsy estetty",
     account: "Tili",
     changeLanguage: "Vaihda kieleksi englanti",
     cookieInformation: "Tietoa evästeistä",
