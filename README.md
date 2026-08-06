@@ -13,20 +13,33 @@ Read these files before you change the product:
 
 - Node.js 22 or later
 - pnpm 10.33.0
-- Postgres
+- Docker, or another local Postgres installation
 - A Clerk development application
+
+The setup wizard gives you the exact dashboard steps for Clerk, Railway, Cloudflare, and GitHub:
+
+```bash
+./scripts/setup-private-deployment.sh
+```
+
+Run the wizard after this change is merged into `main`.
 
 ## Local setup
 
 1. Copy `.env.example` to `.env.local`.
-2. Set `DATABASE_URL`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, and `CLERK_SECRET_KEY`.
-3. Install dependencies with `pnpm install`.
-4. Apply migrations with `pnpm db:migrate`.
-5. Start the app with `pnpm dev`.
+2. Set `DATABASE_URL`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, and `ALLOWED_CLERK_USER_ID`.
+3. Install dependencies with `pnpm install --frozen-lockfile`.
+4. Start the included local database with `docker compose up -d postgres`.
+5. Apply migrations with `pnpm db:migrate`.
+6. Start the app with `pnpm dev`.
 
 Open [http://localhost:3000](http://localhost:3000).
 
+Stop the local database with `docker compose stop postgres`.
+
 For local visual work without a Clerk session, set `DOUBTFIRE_ALLOW_UNAUTHENTICATED_PREVIEW=1`. This flag has no effect in production.
+
+Do not use the preview flag to test authentication. Use the Clerk development instance for authentication tests.
 
 ## Checks
 
@@ -44,3 +57,7 @@ Railway builds the root `Dockerfile`. It runs `pnpm db:migrate` before deploymen
 `/health` is public so Railway can check the service. Application pages protect their data with Clerk at the page or server-function boundary.
 
 The app requires a persistent container because later phases use server-sent events and Postgres `LISTEN/NOTIFY`.
+
+GitHub Actions runs lint, type checks, tests, and a production build for each pull request. Railway deploys `main` after the GitHub checks pass. GitHub Actions does not hold production secrets and does not deploy the app.
+
+See [`docs/private-deployment.md`](./docs/private-deployment.md) for the security model and manual checks. See [`docs/privacy-and-cookies.md`](./docs/privacy-and-cookies.md) for the current cookie assessment.
