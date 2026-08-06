@@ -46,13 +46,18 @@ Due-ness belongs to each Task. A Run only presents Tasks that are Due. The app d
 
 The product name is Doubtfire. English product text uses ASD-STE100 Simplified Technical English. The interface must feel supportive and direct. It must not judge the household.
 
+Use a familiar mobile utility structure. Make the interface feel fresh, light, and modern. Use clean white or very pale cool surfaces, deep navy or cobalt for strong actions, and fresh aqua, sky, mint, or lilac for small accents. Keep the layout open and use soft depth only where it helps the hierarchy.
+
+Use Roborock, Oral-B, LARQ, and Woods Connect as visual references for color, atmosphere, and rhythm. Do not copy their brands or product behavior. Do not use scores, percentages, warning language, or competitive coaching.
+
 ## Evidence on Hand
 
 - `CONTEXT.md` contains the domain language.
 - `docs/implementation-plan.md` contains the delivery plan and stack.
 - `docs/adr/` contains the settled product and architecture decisions.
 - `fixtures/example-cleaning-list.md` contains invented public content for development and tests.
-- The repository has no approved logo, color palette, font system, or real household content.
+- The repository has no approved logo, font system, or real household content.
+- The user approved the visual reference set in Brand Commitments. The exact design tokens still need implementation checks.
 
 ## Product Principles
 

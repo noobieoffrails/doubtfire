@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-06T16:55:34Z",
+  "title": "Design System: Doubtfire",
+  "extensions": {
+    "colorMeta": {
+      "deep-navy": { "role": "primary", "displayName": "Deep Navy", "canonical": "#10184d", "tonalRamp": ["#070a22", "#10184d", "#26306d", "#45518c", "#6b76a6", "#949dc0", "#c4c9dc", "#eff1f8"] },
+      "muted-navy": { "role": "neutral", "displayName": "Muted Navy", "canonical": "#56628b", "tonalRamp": ["#151a2c", "#2e3652", "#56628b", "#7480a2", "#97a0bc", "#bbc1d2", "#dadee8", "#f2f4f8"] },
+      "action-cobalt": { "role": "primary", "displayName": "Action Cobalt", "canonical": "#075cf5", "tonalRamp": ["#001642", "#002b7b", "#0047c2", "#075cf5", "#4d83ff", "#83a8ff", "#bdd0ff", "#edf3ff"] },
+      "action-cobalt-deep": { "role": "primary", "displayName": "Action Cobalt Deep", "canonical": "#0047d7", "tonalRamp": ["#00143d", "#00266f", "#003aa8", "#0047d7", "#4c75e6", "#84a0ee", "#bdcaf6", "#edf1fd"] },
+      "open-sky": { "role": "secondary", "displayName": "Open Sky", "canonical": "#e3f3ff", "tonalRamp": ["#102934", "#1f4a5c", "#3c6f86", "#6397af", "#91bed3", "#bde0ee", "#e3f3ff", "#f5fbff"] },
+      "clear-sky": { "role": "secondary", "displayName": "Clear Sky", "canonical": "#9ed8ff", "tonalRamp": ["#0b2739", "#164961", "#286f90", "#4698bd", "#70bee1", "#9ed8ff", "#cbeaff", "#f2faff"] },
+      "fresh-mint": { "role": "secondary", "displayName": "Fresh Mint", "canonical": "#e5f7ef", "tonalRamp": ["#102d23", "#245041", "#447765", "#70a18d", "#a2cbb9", "#cce9dc", "#e5f7ef", "#f5fcf9"] },
+      "leaf-mint": { "role": "secondary", "displayName": "Leaf Mint", "canonical": "#7dd9bb", "tonalRamp": ["#0b2b21", "#15513e", "#26765c", "#3fa17e", "#5fc5a1", "#7dd9bb", "#b8ead8", "#edfaf5"] },
+      "soft-lilac": { "role": "secondary", "displayName": "Soft Lilac", "canonical": "#efe9ff", "tonalRamp": ["#221b37", "#40345f", "#625189", "#8974b2", "#ae9bd4", "#d0c3ed", "#efe9ff", "#faf8ff"] },
+      "bright-lilac": { "role": "secondary", "displayName": "Bright Lilac", "canonical": "#bba6ff", "tonalRamp": ["#211747", "#3d2c78", "#5e47ac", "#8268db", "#a58df4", "#bba6ff", "#dacfff", "#f5f1ff"] },
+      "warm-coral": { "role": "tertiary", "displayName": "Warm Coral", "canonical": "#ff827d", "tonalRamp": ["#3b1514", "#702b28", "#a84440", "#d95f5a", "#ff827d", "#ffa9a5", "#ffd0ce", "#fff2f1"] },
+      "cool-ice": { "role": "neutral", "displayName": "Cool Ice", "canonical": "#f7fbff", "tonalRamp": ["#172027", "#34414a", "#5a6974", "#85939e", "#b2bec7", "#d8e1e7", "#f0f6fa", "#f7fbff"] },
+      "clean-white": { "role": "neutral", "displayName": "Clean White", "canonical": "#ffffff", "tonalRamp": ["#202020", "#414141", "#646464", "#898989", "#aeaeae", "#d1d1d1", "#ededed", "#ffffff"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Short home and sign-in greetings." },
+      "headline": { "displayName": "Headline", "purpose": "Primary section headings." },
+      "title": { "displayName": "Title", "purpose": "Routine names and strong choices." },
+      "body": { "displayName": "Body", "purpose": "Instructions and supporting copy." },
+      "label": { "displayName": "Label", "purpose": "Compact controls and navigation labels." }
+    },
+    "shadows": [
+      { "name": "action-lift", "value": "0 14px 28px -16px rgb(7 92 245 / 65%)", "purpose": "Lift the enabled cobalt primary action." },
+      { "name": "ambient-float", "value": "0 22px 52px -36px rgb(27 43 94 / 42%)", "purpose": "Give white icon discs and quiet controls soft separation." },
+      { "name": "tablet-surface", "value": "0 34px 90px -58px rgb(16 24 77 / 52%)", "purpose": "Separate the wide-screen application panel from the cool-ice ground." }
+    ],
+    "motion": [
+      { "name": "state-transition", "value": "200ms", "purpose": "Button color, shadow, and press feedback." },
+      { "name": "care-settle", "value": "700ms cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Settle the decorative still life when reduced motion is not requested." }
+    ],
+    "breakpoints": [
+      { "name": "compact-phone", "value": "359px" },
+      { "name": "tablet", "value": "760px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one strong action in a surface.",
+      "html": "<button class=\"ds-button-primary\">Start cleaning</button>",
+      "css": ".ds-button-primary { min-height: 48px; border: 0; border-radius: 14px; padding: 12px 20px; background: var(--cobalt, #075cf5); color: #fff; box-shadow: 0 14px 28px -16px rgb(7 92 245 / 65%); font: 700 16px/1.2 Manrope, sans-serif; transition: background-color 200ms, box-shadow 200ms, transform 200ms; } .ds-button-primary:hover { background: var(--cobalt-deep, #0047d7); } .ds-button-primary:active { transform: translateY(1px); } .ds-button-primary:focus-visible { outline: 3px solid #075cf5; outline-offset: 4px; }"
+    },
+    {
+      "name": "Language Toggle",
+      "kind": "button",
+      "description": "A compact, quiet language control.",
+      "html": "<button class=\"ds-language\" aria-label=\"Change language\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18\"/></svg><span>EN</span></button>",
+      "css": ".ds-language { display: inline-flex; min-width: 76px; min-height: 46px; align-items: center; justify-content: center; gap: 7px; border: 1px solid rgb(16 24 77 / 12%); border-radius: 999px; background: #fff; color: #10184d; font: 750 14px/1.2 Manrope, sans-serif; } .ds-language svg { width: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; } .ds-language:hover { border-color: rgb(16 24 77 / 24%); } .ds-language:focus-visible { outline: 3px solid #075cf5; outline-offset: 4px; }"
+    },
+    {
+      "name": "Sky Routine Field",
+      "kind": "card",
+      "refersTo": "routine-sky",
+      "description": "A broad Weekly choice with a soft asymmetric silhouette.",
+      "html": "<button class=\"ds-routine ds-routine-sky\"><span class=\"ds-routine-icon\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2Z\"/></svg></span><span>Weekly</span></button>",
+      "css": ".ds-routine { display: flex; width: 100%; min-height: 108px; align-items: center; gap: 16px; border: 0; padding: 14px 18px 14px 14px; color: #10184d; font: 760 22px/1.2 Manrope, sans-serif; text-align: left; } .ds-routine-sky { border-radius: 42px 84px 28px 38px; background: #e3f3ff; } .ds-routine-icon { display: grid; width: 56px; height: 56px; place-items: center; border-radius: 50%; background: #fff; color: #075cf5; } .ds-routine-icon svg { width: 30px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; } .ds-routine:hover { filter: saturate(1.04); } .ds-routine:focus-visible { outline: 3px solid #075cf5; outline-offset: 4px; }"
+    },
+    {
+      "name": "Mint Routine Field",
+      "kind": "card",
+      "refersTo": "routine-mint",
+      "description": "A broad Fortnightly choice with a distinct soft silhouette.",
+      "html": "<button class=\"ds-routine ds-routine-mint\"><span class=\"ds-routine-icon ds-routine-icon-mint\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2Z\"/></svg></span><span>Fortnightly</span></button>",
+      "css": ".ds-routine { display: flex; width: 100%; min-height: 108px; align-items: center; gap: 16px; border: 0; padding: 14px 18px 14px 14px; color: #10184d; font: 760 22px/1.2 Manrope, sans-serif; text-align: left; } .ds-routine-mint { border-radius: 52px 28px 72px 34px; background: #e5f7ef; } .ds-routine-icon { display: grid; width: 56px; height: 56px; place-items: center; border-radius: 50%; background: #fff; } .ds-routine-icon-mint { color: #118969; } .ds-routine-icon svg { width: 30px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; } .ds-routine:hover { filter: saturate(1.04); } .ds-routine:focus-visible { outline: 3px solid #075cf5; outline-offset: 4px; }"
+    },
+    {
+      "name": "Bottom Navigation",
+      "kind": "nav",
+      "description": "Three equal primary destinations with one clear active state.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Primary navigation\"><a class=\"ds-nav-item ds-active\" href=\"#\">Home</a><span class=\"ds-nav-item\">History</span><span class=\"ds-nav-item\">Settings</span></nav>",
+      "css": ".ds-nav { display: grid; grid-template-columns: repeat(3, 1fr); min-height: 78px; padding: 8px 12px; border-top: 1px solid rgb(16 24 77 / 8%); background: rgb(255 255 255 / 94%); } .ds-nav-item { position: relative; display: flex; min-height: 54px; align-items: center; justify-content: center; border-radius: 14px; color: #56628b; font: 650 12px/1.2 Manrope, sans-serif; text-decoration: none; } .ds-nav-item.ds-active { color: #075cf5; } .ds-nav-item.ds-active::before { position: absolute; top: -8px; width: 44px; height: 3px; border-radius: 999px; background: #075cf5; content: \"\"; } .ds-nav-item:hover { color: #10184d; } .ds-nav-item:focus-visible { outline: 3px solid #075cf5; outline-offset: 4px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Color Islands",
+    "overview": "Doubtfire is a fresh, light, and modern household utility. Familiar controls sit inside an open white surface while broad fields of sky, mint, and lilac make the product its own world. The interface is direct and supportive. It gives people a calm place to start without scores, debt, or pressure. The composition stays category-standard: a compact header, one clear opening action, a short Routine list, and fixed primary navigation on phones. Color creates recognition and rhythm. It does not report status or urgency.",
+    "keyCharacteristics": [
+      "Broad color fields instead of a neutral card dashboard.",
+      "Deep navy type and cobalt actions on white or cool-ice surfaces.",
+      "Asymmetric soft corners and almost-flat depth.",
+      "Generous open space with compact, familiar controls.",
+      "Supportive copy with no competitive or warning-heavy language."
+    ],
+    "rules": [
+      { "name": "The Color-Island Rule", "body": "Use sky, mint, and lilac as broad navigable fields. Do not reduce them to small badges on white cards.", "section": "colors" },
+      { "name": "The Coral Restraint Rule", "body": "Coral is decorative and rare. Do not use it for warnings.", "section": "colors" },
+      { "name": "The Short-Display Rule", "body": "Keep display text short enough to stay clear at a tight line height. Use body styles for explanations.", "section": "typography" },
+      { "name": "The Flat-First Rule", "body": "Use color and spacing before adding a shadow. A shadow must explain a control or contained surface.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use broad sky, mint, and lilac fields to organize the primary choices.",
+      "Do keep copy short, direct, supportive, and compatible with ASD-STE100 Simplified Technical English.",
+      "Do use deep navy for readable hierarchy and cobalt for actions, focus, and active state.",
+      "Do keep motion small and optional. The still-life settle runs only when reduced motion is not requested.",
+      "Do adapt the composition at 760 px instead of scaling the phone layout."
+    ],
+    "donts": [
+      "Don't build a neutral dashboard from many small white cards.",
+      "Don't show scores, percentages, denominators, task debt, competitive coaching, or warning-heavy states.",
+      "Don't use coral as a warning color.",
+      "Don't add shadows only for decoration.",
+      "Don't copy reference brands, logos, product claims, or device imagery."
+    ]
+  }
+}
