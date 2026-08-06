@@ -12,6 +12,8 @@ export function getLocale(value: string | undefined): Locale {
 
 export const dictionaries = {
   en: {
+    accessDeniedDescription: "Sign out and use the predefined household account.",
+    accessDeniedHeading: "This account cannot open Doubtfire.",
     account: "Account",
     changeLanguage: "Change the language to Finnish",
     doubtfireHome: "Doubtfire home",
@@ -29,10 +31,13 @@ export const dictionaries = {
     signInForm: "Sign in form",
     signInHeading: "Welcome home.",
     signInTitle: "Sign in",
+    signOut: "Sign out",
     startCleaning: "Start cleaning",
     weekly: "Weekly",
   },
   fi: {
+    accessDeniedDescription: "Kirjaudu ulos ja käytä kodille ennalta määritettyä tiliä.",
+    accessDeniedHeading: "Tällä tilillä ei voi avata Doubtfirea.",
     account: "Tili",
     changeLanguage: "Vaihda kieleksi englanti",
     doubtfireHome: "Doubtfiren etusivu",
@@ -50,6 +55,7 @@ export const dictionaries = {
     signInForm: "Kirjautumislomake",
     signInHeading: "Tervetuloa kotiin.",
     signInTitle: "Kirjaudu sisään",
+    signOut: "Kirjaudu ulos",
     startCleaning: "Aloita siivous",
     weekly: "Viikoittain",
   },

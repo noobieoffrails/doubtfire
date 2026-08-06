@@ -6,9 +6,11 @@ describe("parseServerEnvironment", () => {
   it("accepts a PostgreSQL connection URL", () => {
     expect(
       parseServerEnvironment({
+        ALLOWED_CLERK_USER_ID: "user_owner",
         DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/doubtfire",
       }),
     ).toEqual({
+      ALLOWED_CLERK_USER_ID: "user_owner",
       DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/doubtfire",
     });
   });
@@ -23,5 +25,13 @@ describe("parseServerEnvironment", () => {
     expect(() =>
       parseServerEnvironment({ DATABASE_URL: "mysql://localhost/doubtfire" }),
     ).toThrow("DATABASE_URL must use the postgres or postgresql scheme.");
+  });
+
+  it("rejects a missing predefined Clerk user", () => {
+    expect(() =>
+      parseServerEnvironment({
+        DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/doubtfire",
+      }),
+    ).toThrow("Set ALLOWED_CLERK_USER_ID to the predefined Clerk account.");
   });
 });

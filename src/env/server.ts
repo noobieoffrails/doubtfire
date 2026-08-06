@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+const allowedClerkUserIdSchema = z
+  .string({ error: "Set ALLOWED_CLERK_USER_ID to the predefined Clerk account." })
+  .min(1, "Set ALLOWED_CLERK_USER_ID to the predefined Clerk account.");
+
 const serverEnvironmentSchema = z.object({
   DATABASE_URL: z
     .string({ error: "Set DATABASE_URL before the app connects to Postgres." })
@@ -8,6 +12,7 @@ const serverEnvironmentSchema = z.object({
       (value) => value.startsWith("postgres://") || value.startsWith("postgresql://"),
       "DATABASE_URL must use the postgres or postgresql scheme.",
     ),
+  ALLOWED_CLERK_USER_ID: allowedClerkUserIdSchema,
 });
 
 export type ServerEnvironment = z.infer<typeof serverEnvironmentSchema>;
@@ -20,4 +25,8 @@ export function parseServerEnvironment(
 
 export function getServerEnvironment(): ServerEnvironment {
   return parseServerEnvironment(process.env);
+}
+
+export function getAllowedClerkUserId(): string {
+  return allowedClerkUserIdSchema.parse(process.env.ALLOWED_CLERK_USER_ID);
 }
