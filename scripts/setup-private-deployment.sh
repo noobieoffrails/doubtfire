@@ -187,28 +187,38 @@ finish() {
 # Make the total values agree with the stages.
 # ──────────────────────────────────────────────────────────────────────────
 
-TOTAL_STAGES=10
-TOTAL_MINUTES=55
+TOTAL_STAGES=17
+TOTAL_MINUTES=61
 ENV_FILE="${DOUBTFIRE_ENV_FILE:-.env.local}"
 
 banner "Doubtfire private deployment"
 
-stage "Clerk development application" 6
-say "Create the Clerk application that you will use for local development."
+stage "Clerk development application" 3
+say "Create the Clerk application for local development."
 open_url "https://dashboard.clerk.com/apps/new"
 step "Create an application named Doubtfire."
 step "If Clerk shows a framework guide, close it. The app already contains the Clerk code."
+pause "Continue when the Doubtfire development application exists."
+
+stage "Clerk development sign-in" 4
+say "Enable the identifiers and password for the predefined account."
+open_url "https://dashboard.clerk.com/"
 step "Open Configure, then User & authentication."
 step "On Email, enable Sign-up with email and Sign-in with email."
 step "On Username, enable username sign-up and sign-in."
 step "On Password, enable Sign-up with password and Add password to account."
 step "Open SSO connections. Disable every social sign-in method."
+pause "Continue when email, username, and password are enabled and social sign-in is disabled."
+
+stage "Clerk development restriction" 2
+say "Block public sign-up."
+open_url "https://dashboard.clerk.com/"
 step "Open Protect, then Restrictions. Enable restricted mode."
 note "Restricted mode blocks public sign-up. Keep the email, username, and password sign-up methods enabled."
 warn "Do not enable Public or Waitlist mode."
 pause "Continue when the development instance is restricted."
 
-stage "Predefined development user" 5
+stage "Predefined development user" 4
 say "Create the only account that can use the local app."
 open_url "https://dashboard.clerk.com/"
 step "Confirm that the top of the dashboard says Development."
@@ -222,7 +232,7 @@ while [[ ! "$ALLOWED_CLERK_USER_ID" =~ ^user_ ]]; do
   ask ALLOWED_CLERK_USER_ID "Paste the development user ID:"
 done
 
-stage "Local environment" 5
+stage "Local environment" 4
 say "Copy the Clerk development keys to the ignored local environment file."
 open_url "https://dashboard.clerk.com/"
 step "Open Configure, then Developers, then API keys."
@@ -300,7 +310,7 @@ step "Also open http://localhost:3000/robots.txt. It must contain Disallow: /."
 open_url "http://localhost:3000"
 pause "Continue when local sign-in works."
 
-stage "Railway project and Postgres" 7
+stage "Railway services and regions" 5
 say "Create the persistent app service and its database."
 open_url "https://railway.com/new"
 step "Select Deploy from GitHub repo and choose noobieoffrails/doubtfire."
@@ -309,15 +319,20 @@ step "On the project canvas, select + New, then Database, then PostgreSQL."
 warn "Railway can show a failed first deployment before the required variables exist. Continue this setup before you diagnose it."
 step "Open Settings for the app service. Select EU West."
 step "Open Settings for Postgres. Select EU West and wait until Postgres is healthy."
+pause "Continue when both services exist in EU West and Postgres is healthy."
+
+stage "Railway database reference" 3
+say "Give the app service access to Postgres."
+open_url "https://railway.com/dashboard"
 step "Open the app service, not Postgres. Open its Variables tab."
 step "Select New Variable and enter these two fields:"
 note "Name: DATABASE_URL"
 note 'Value: ${{Postgres.DATABASE_URL}}'
 note "If the database has another name, use Railway autocomplete to select its DATABASE_URL."
 warn "Do not use the purple Add a Variable Reference help link. It opens the documentation."
-pause "Continue when both services use EU West and the app has the database reference."
+pause "Continue when the app service has the DATABASE_URL reference."
 
-stage "First Railway deployment" 6
+stage "First Railway deployment" 5
 say "Use the development Clerk values for one temporary deployment."
 warn "This is only for setup. You will replace these values with production keys later."
 step "In the app service Variables tab, add the following values from .env.local:"
@@ -334,13 +349,17 @@ step "Review and deploy the staged changes. Wait for the migration, deployment, 
 note "A warning about Clerk development keys is expected during this temporary deployment."
 pause "Continue when Railway shows a healthy deployment."
 
-stage "Custom domain and Cloudflare" 7
+stage "Railway custom domain" 3
 ask APP_HOSTNAME "Enter the full app hostname, for example doubtfire.example.com:"
 open_url "https://railway.com/dashboard"
 step "Open the app service, then Settings, then Public Networking."
 step "Select + Custom Domain and enter $APP_HOSTNAME."
 step "Do not generate a Railway domain. Do not enable TCP Proxy or Outbound IPv6."
 step "Keep the CNAME and TXT values from Railway visible. Both are required."
+pause "Continue when Railway shows the CNAME and TXT values."
+
+stage "Cloudflare app records" 4
+say "Connect the public app hostname to Railway."
 open_url "https://dash.cloudflare.com/"
 step "Open your domain, then DNS, then Records."
 step "Add the Railway CNAME and TXT records exactly as Railway shows them."
@@ -350,14 +369,19 @@ warn "Do not create a Cache Everything rule for this authenticated app."
 step "Return to Railway and wait for the custom domain to show a green check."
 pause "Continue when https://$APP_HOSTNAME opens."
 
-stage "Clerk production instance" 8
-say "Create the production identity service and its one production user."
+stage "Clerk production instance" 3
+say "Create and restrict the production identity service."
 open_url "https://dashboard.clerk.com/"
 step "Use the Development selector in the top-left. Select Create production instance."
 step "Clone the development settings. Enter $APP_HOSTNAME as the application domain."
 step "If Clerk asks how to scope this subdomain, select Secondary application."
 step "Confirm that the top-left instance selector now says Production."
 step "Open Configure, then Protect, then Restrictions. Confirm that restricted mode is enabled."
+pause "Continue when the production instance exists and restricted mode is enabled."
+
+stage "Clerk production domain" 5
+say "Authorize Clerk's production DNS records and certificates."
+open_url "https://dashboard.clerk.com/"
 step "Return to Overview. Select Continue setup, then Connect under Add DNS records."
 step "On Domains, select Configure automatically."
 step "In Cloudflare, review the five Clerk CNAME records. Confirm that each record says DNS only."
@@ -365,6 +389,12 @@ step "Authorize the one-time DNS change, then return to Clerk."
 warn "The Railway app record stays orange. Only Clerk records must be gray."
 step "Wait for DNS to show Verified and for both SSL certificates to finish."
 step "If Clerk shows a Deploy certificates button, select it."
+pause "Continue when DNS is verified and both Clerk certificates are ready."
+
+stage "Predefined production user" 3
+say "Create the only account that can use the production app."
+open_url "https://dashboard.clerk.com/"
+step "Confirm that the top-left instance selector says Production."
 step "Open Users, select Create user, and enter your email, username, and a strong unique password."
 step "Keep Ignore password policies clear, then select Create user."
 step "Copy the production user ID. It starts with user_."
@@ -383,12 +413,16 @@ step "Review and deploy the staged changes. Wait for the health check to succeed
 warn "Do not put production keys in .env.local or GitHub Actions."
 pause "Continue when production sign-in works at https://$APP_HOSTNAME."
 
-stage "GitHub protection and final checks" 2
+stage "GitHub protection" 2
+say "Require reviewed and verified changes for main."
 open_url "https://github.com/noobieoffrails/doubtfire/settings/rules"
 step "Select Rulesets, New ruleset, then New branch ruleset."
 step "Name it Protect main, set enforcement to Active, and target the default branch."
 step "Require a pull request and require the Verify status check to pass."
 step "Keep branch deletion and force pushes blocked. Create the ruleset."
+pause "Continue when the Protect main ruleset is active."
+
+stage "Final deployment checks" 2
 say "Now verify the deployment."
 step "Open / while signed out. It must redirect to /sign-in."
 step "Confirm that the Clerk Users page contains only the predefined account."
@@ -397,9 +431,11 @@ step "Run: curl -I https://$APP_HOSTNAME"
 step "Confirm that X-Robots-Tag contains noindex and nofollow."
 step "Open /health. It must return {\"status\":\"ok\"}."
 step "Install the app on the iPhone. Confirm that it opens from the home screen and can sign in."
-note "The owner accepted the iPhone installation. Android tablet acceptance is deferred."
+note "Android tablet acceptance is deferred for the initial release."
 note "After seven days, record whether the repeat sign-in experience is acceptable on the iPhone."
+warn "Phase 1 acceptance stays open until the seven-day iPhone check is complete."
 note "Clerk and the selected language use necessary cookies. No analytics or advertising cookies exist."
 note "If optional analytics or tracking is added later, add consent before that storage starts."
+pause "Continue when the immediate production checks are complete."
 
 finish
