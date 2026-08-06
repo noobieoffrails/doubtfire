@@ -41,4 +41,6 @@ pnpm build
 
 Railway builds the root `Dockerfile`. It runs `pnpm db:migrate` before deployment and checks `/health` before it routes traffic to the new container.
 
+`/health` is public so Railway can check the service. Application pages protect their data with Clerk at the page or server-function boundary.
+
 The app requires a persistent container because later phases use server-sent events and Postgres `LISTEN/NOTIFY`.

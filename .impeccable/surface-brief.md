@@ -1,17 +1,17 @@
 # Home Surface Brief
 
-## Approved visual world
+## Approved design
 
 The structure is the category standard: a familiar mobile utility with clear navigation, one main action, and a short routine list.
 
-The visual world is fresh, light, and modern. It combines:
+The design is fresh, light, and modern. It combines:
 
 - Roborock's pale cool surfaces, strong blue controls, and restrained depth.
 - Oral-B's confident cobalt, deep navy, cyan, and small bright accents.
 - LARQ's white space, soft color wash, deep teal, mint, sky, and lilac.
 - Woods Connect's bright domestic setting, direct controls, and white-and-blue clarity.
 
-The product must remain supportive. Color adds energy, but it must not signal a score or overdue debt.
+The product must remain supportive. Color makes choices easy to identify. It must not signal a score or overdue debt.
 
 ## Approved composition
 
@@ -19,7 +19,7 @@ The user approved Color Islands on 2026-08-06. The approved comp is `.impeccable
 
 The compact opening area puts the greeting and main action at the left and a fresh home-care still life in an aqua island at the right. Three large sky, mint, and lilac Routine fields follow. Familiar language, account, and bottom-navigation controls frame the surface.
 
-Do not literalize the generated comp's decorative sparkles, fake device status bar, or exact product photography. Use semantic app chrome. The still life is atmosphere only and must not imply an endorsed product.
+Do not copy the generated comp's decorative sparkles, fake device status bar, or exact product photography. Use semantic app controls. The still life is decoration only. It must not imply that Doubtfire approves a product.
 
 ## System extracted from the comp
 

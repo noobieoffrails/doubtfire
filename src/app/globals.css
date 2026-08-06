@@ -421,6 +421,12 @@ a:focus-visible {
     var(--sky);
 }
 
+.signInTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .signInCopy {
   max-width: 31rem;
 }

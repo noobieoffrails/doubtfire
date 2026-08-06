@@ -1,9 +1,10 @@
 import { ClerkProvider } from "@clerk/nextjs";
+import { fiFI } from "@clerk/localizations";
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { Manrope } from "next/font/google";
 import type { ReactNode } from "react";
-import { getLocale } from "@/i18n/config";
+import { getRequestLocale } from "@/i18n/server";
+import { allowsLocalPreview } from "@/lib/local-preview";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -44,10 +45,8 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 `.trim();
 
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
-  const locale = getLocale((await cookies()).get("doubtfire-language")?.value);
-  const allowsLocalPreview =
-    process.env.NODE_ENV !== "production" &&
-    process.env.DOUBTFIRE_ALLOW_UNAUTHENTICATED_PREVIEW === "1";
+  const locale = await getRequestLocale();
+  const isLocalPreview = allowsLocalPreview();
 
   return (
     <html lang={locale}>
@@ -57,7 +56,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             __html: `document.currentScript?.before(document.createComment(${JSON.stringify(designContract)}));`,
           }}
         />
-        {allowsLocalPreview ? children : <ClerkProvider>{children}</ClerkProvider>}
+        {isLocalPreview ? (
+          children
+        ) : (
+          <ClerkProvider localization={locale === "fi" ? fiFI : undefined}>{children}</ClerkProvider>
+        )}
       </body>
     </html>
   );

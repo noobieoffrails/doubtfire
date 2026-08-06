@@ -1,18 +1,8 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { clerkMiddleware } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { allowsLocalPreview } from "@/lib/local-preview";
 
-const isPublicRoute = createRouteMatcher(["/health", "/sign-in(.*)"]);
-const allowsLocalPreview =
-  process.env.NODE_ENV !== "production" &&
-  process.env.DOUBTFIRE_ALLOW_UNAUTHENTICATED_PREVIEW === "1";
-
-const protectedProxy = clerkMiddleware(async (auth, request) => {
-  if (!isPublicRoute(request)) {
-    await auth.protect();
-  }
-});
-
-export default allowsLocalPreview ? () => NextResponse.next() : protectedProxy;
+export default allowsLocalPreview() ? () => NextResponse.next() : clerkMiddleware();
 
 export const config = {
   matcher: [

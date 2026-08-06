@@ -2,27 +2,38 @@ import { SignIn } from "@clerk/nextjs";
 import { Sparkles } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { LanguageToggle } from "@/components/language-toggle";
+import { dictionaries } from "@/i18n/config";
+import { getRequestLocale } from "@/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Sign in",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getRequestLocale();
 
-export default function SignInPage() {
+  return { title: dictionaries[locale].signInTitle };
+}
+
+export default async function SignInPage() {
+  const locale = await getRequestLocale();
+  const copy = dictionaries[locale];
+
   return (
     <main className="signInPage">
       <section className="signInIntro" aria-labelledby="sign-in-heading">
-        <Link className="wordmark" href="/">
-          Doubtfire
-        </Link>
+        <div className="signInTop">
+          <Link className="wordmark" href="/">
+            Doubtfire
+          </Link>
+          <LanguageToggle locale={locale} label={copy.changeLanguage} />
+        </div>
         <div className="signInCopy">
           <span className="signInMark" aria-hidden="true">
             <Sparkles />
           </span>
-          <h1 id="sign-in-heading">Welcome home.</h1>
-          <p>Sign in to open your household cleaning routines.</p>
+          <h1 id="sign-in-heading">{copy.signInHeading}</h1>
+          <p>{copy.signInDescription}</p>
         </div>
       </section>
-      <section className="signInPanel" aria-label="Sign in form">
+      <section className="signInPanel" aria-label={copy.signInForm}>
         <SignIn
           path="/sign-in"
           routing="path"

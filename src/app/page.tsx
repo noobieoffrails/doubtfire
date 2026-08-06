@@ -1,20 +1,21 @@
 import { UserButton } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import {
   CalendarDays,
   CircleUserRound,
   Clock3,
-  Globe2,
   Home,
   LockKeyhole,
   Settings,
 } from "lucide-react";
 import Image from "next/image";
-import { cookies } from "next/headers";
 import Link from "next/link";
-import { setLanguage } from "@/app/actions";
+import { LanguageToggle } from "@/components/language-toggle";
 import { RoutineArt } from "@/components/routine-art";
 import { Button } from "@/components/ui/button";
-import { dictionaries, getLocale, type Locale } from "@/i18n/config";
+import { dictionaries } from "@/i18n/config";
+import { getRequestLocale } from "@/i18n/server";
+import { allowsLocalPreview } from "@/lib/local-preview";
 
 const routines = [
   { key: "weekly", iconTone: "sky", shape: "islandWeekly" },
@@ -23,11 +24,14 @@ const routines = [
 ] as const;
 
 export default async function HomePage() {
-  const locale = getLocale((await cookies()).get("doubtfire-language")?.value);
+  const isLocalPreview = allowsLocalPreview();
+
+  if (!isLocalPreview) {
+    await auth.protect();
+  }
+
+  const locale = await getRequestLocale();
   const copy = dictionaries[locale];
-  const allowsLocalPreview =
-    process.env.NODE_ENV !== "production" &&
-    process.env.DOUBTFIRE_ALLOW_UNAUTHENTICATED_PREVIEW === "1";
 
   return (
     <main className="appCanvas">
@@ -39,7 +43,7 @@ export default async function HomePage() {
           <div className="headerActions">
             <LanguageToggle locale={locale} label={copy.changeLanguage} />
             <div className="accountControl" aria-label={copy.account}>
-              {allowsLocalPreview ? (
+              {isLocalPreview ? (
                 <CircleUserRound className="accountPlaceholder" aria-hidden="true" strokeWidth={1.9} />
               ) : (
                 <UserButton
@@ -122,19 +126,5 @@ export default async function HomePage() {
         </nav>
       </section>
     </main>
-  );
-}
-
-function LanguageToggle({ locale, label }: { locale: Locale; label: string }) {
-  const nextLocale: Locale = locale === "en" ? "fi" : "en";
-
-  return (
-    <form action={setLanguage}>
-      <input name="locale" type="hidden" value={nextLocale} />
-      <button className="languageToggle" type="submit" aria-label={label}>
-        <Globe2 aria-hidden="true" strokeWidth={2} />
-        <span>{locale.toUpperCase()}</span>
-      </button>
-    </form>
   );
 }

@@ -93,9 +93,9 @@ components:
 
 **Creative North Star: "Color Islands"**
 
-Doubtfire is a fresh, light, and modern household utility. Familiar controls sit inside an open white surface while broad fields of sky, mint, and lilac make the product its own world. The interface is direct and supportive. It gives people a calm place to start without scores, debt, or pressure.
+Doubtfire is a fresh, light, and modern household utility. Familiar controls sit on an open white surface. Broad fields of sky, mint, and lilac give the product a clear style. The interface is direct and supportive. It gives people a calm place to start without scores, debt, or pressure.
 
-The composition stays category-standard: a compact header, one clear opening action, a short Routine list, and fixed primary navigation on phones. Color creates recognition and rhythm. It does not report status or urgency.
+The layout uses a familiar app structure: a compact header, one clear opening action, a short Routine list, and fixed primary navigation on phones. Color makes each choice easy to identify. It does not report status or urgency.
 
 **Key Characteristics:**
 

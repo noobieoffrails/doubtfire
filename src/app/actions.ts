@@ -1,8 +1,8 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { isLocale } from "@/i18n/config";
+import { setRequestLocale } from "@/i18n/server";
 
 export async function setLanguage(formData: FormData): Promise<void> {
   const locale = formData.get("locale");
@@ -11,13 +11,7 @@ export async function setLanguage(formData: FormData): Promise<void> {
     return;
   }
 
-  (await cookies()).set("doubtfire-language", locale, {
-    httpOnly: true,
-    maxAge: 60 * 60 * 24 * 365,
-    path: "/",
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-  });
+  await setRequestLocale(locale);
 
-  revalidatePath("/");
+  revalidatePath("/", "layout");
 }
