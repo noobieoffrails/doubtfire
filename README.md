@@ -26,6 +26,8 @@ Read these files before you change the product:
 
 Open [http://localhost:3000](http://localhost:3000).
 
+For local visual work without a Clerk session, set `DOUBTFIRE_ALLOW_UNAUTHENTICATED_PREVIEW=1`. This flag has no effect in production.
+
 ## Checks
 
 ```bash

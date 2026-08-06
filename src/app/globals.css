@@ -1,1 +1,643 @@
 @import "tailwindcss";
+
+:root {
+  --ink: #10184d;
+  --ink-soft: #56628b;
+  --cobalt: #075cf5;
+  --cobalt-deep: #0047d7;
+  --sky: #e3f3ff;
+  --sky-strong: #9ed8ff;
+  --mint: #e5f7ef;
+  --mint-strong: #7dd9bb;
+  --lilac: #efe9ff;
+  --lilac-strong: #bba6ff;
+  --coral: #ff827d;
+  --ice: #f7fbff;
+  --white: #ffffff;
+  --focus: #075cf5;
+  --shadow-action: 0 14px 28px -16px rgb(7 92 245 / 65%);
+  --shadow-float: 0 22px 52px -36px rgb(27 43 94 / 42%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--ice);
+  color: var(--ink);
+  font-family: var(--font-manrope), sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100svh;
+  margin: 0;
+  background: var(--white);
+  font-family: var(--font-manrope), sans-serif;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 4px;
+}
+
+::selection {
+  background: var(--mint-strong);
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@media (min-width: 760px) {
+  body {
+    background:
+      radial-gradient(circle at 10% 5%, rgb(158 216 255 / 30%), transparent 28rem),
+      radial-gradient(circle at 92% 14%, rgb(187 166 255 / 22%), transparent 24rem),
+      var(--ice);
+  }
+}
+
+.appCanvas {
+  min-height: 100svh;
+}
+
+.appSurface {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  background: var(--white);
+}
+
+.appHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 70px;
+  padding: max(16px, env(safe-area-inset-top)) 20px 10px;
+}
+
+.wordmark {
+  color: var(--ink);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  text-decoration: none;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.languageToggle,
+.accountControl {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(16 24 77 / 12%);
+  background: var(--white);
+  box-shadow: 0 8px 24px -20px rgb(16 24 77 / 70%);
+}
+
+.languageToggle {
+  gap: 7px;
+  min-width: 76px;
+  border-radius: 999px;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 750;
+}
+
+.languageToggle svg {
+  width: 18px;
+}
+
+.accountControl {
+  width: 46px;
+  border-radius: 50%;
+}
+
+.clerkAvatar {
+  width: 34px;
+  height: 34px;
+}
+
+.clerkTrigger {
+  outline: none;
+}
+
+.accountPlaceholder {
+  width: 24px;
+  height: 24px;
+  color: var(--ink);
+}
+
+.welcome {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 58%) minmax(0, 42%);
+  min-height: 228px;
+  isolation: isolate;
+}
+
+.welcomeCopy {
+  position: relative;
+  z-index: 2;
+  padding: 14px 0 8px 20px;
+}
+
+.welcome h1 {
+  max-width: 7.8ch;
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(2.55rem, 11.4vw, 3.35rem);
+  font-weight: 780;
+  letter-spacing: -0.04em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.welcome p {
+  max-width: 16rem;
+  margin: 10px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.98rem;
+  font-weight: 520;
+  line-height: 1.5;
+}
+
+.startButton {
+  min-width: 184px;
+  margin-top: 14px;
+  padding-inline: 18px;
+}
+
+.startButton svg {
+  width: 19px;
+  height: 19px;
+}
+
+.startButton:disabled {
+  background: #456fb7;
+  box-shadow: none;
+  color: var(--white);
+}
+
+.availabilityNote {
+  margin: 6px 0 0 !important;
+  color: var(--ink-soft) !important;
+  font-size: 0.76rem !important;
+  font-weight: 650 !important;
+  line-height: 1.35 !important;
+}
+
+.coralDot {
+  position: absolute;
+  right: -15px;
+  bottom: 42px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--coral);
+}
+
+.careIsland {
+  position: relative;
+  z-index: 1;
+  min-height: 228px;
+  align-self: stretch;
+  overflow: hidden;
+  border-radius: 46% 0 0 54% / 30% 0 0 70%;
+  background:
+    radial-gradient(circle at 25% 30%, rgb(255 255 255 / 92%), transparent 32%),
+    var(--sky);
+}
+
+.careImage {
+  position: absolute;
+  right: -12%;
+  bottom: -2%;
+  width: 130%;
+  height: 106%;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 20px rgb(58 96 135 / 18%));
+}
+
+.routineSection {
+  padding: 6px 20px 88px;
+}
+
+.sectionHeading {
+  margin-bottom: 8px;
+}
+
+.sectionHeading h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.75rem;
+  font-weight: 780;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+}
+
+.routineList {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.routineIsland {
+  position: relative;
+  display: grid;
+  width: 100%;
+  min-height: 108px;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 16px;
+  overflow: hidden;
+  border: 0;
+  padding: 14px 18px 14px 14px;
+  color: var(--ink);
+  cursor: not-allowed;
+  font-size: clamp(1.15rem, 5.6vw, 1.42rem);
+  font-weight: 760;
+  letter-spacing: -0.025em;
+  text-align: left;
+}
+
+.islandWeekly {
+  border-radius: 42px 84px 28px 38px;
+  background: var(--sky);
+}
+
+.islandFortnightly {
+  border-radius: 52px 28px 72px 34px;
+  background: var(--mint);
+}
+
+.islandQuarterly {
+  border-radius: 30px 74px 48px 58px;
+  background: var(--lilac);
+}
+
+.routineIcon {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: 56px;
+  height: 56px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: var(--shadow-float);
+}
+
+.routineIcon svg {
+  width: 30px;
+  height: 30px;
+}
+
+.routineIcon.sky {
+  color: var(--cobalt);
+}
+
+.routineIcon.mint {
+  color: #118969;
+}
+
+.routineIcon.lilac {
+  color: #7657d7;
+}
+
+.islandLinework {
+  position: absolute;
+  right: 12px;
+  bottom: 0;
+  color: currentColor;
+  opacity: 0.16;
+}
+
+.islandLinework svg {
+  width: 104px;
+  height: 66px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.4;
+}
+
+.bottomNav {
+  position: fixed;
+  z-index: 5;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  min-height: calc(78px + env(safe-area-inset-bottom));
+  padding: 8px 12px max(8px, env(safe-area-inset-bottom));
+  border-top: 1px solid rgb(16 24 77 / 8%);
+  background: rgb(255 255 255 / 94%);
+  box-shadow: 0 -16px 40px -34px rgb(16 24 77 / 80%);
+  backdrop-filter: blur(14px);
+}
+
+.navItem {
+  position: relative;
+  display: flex;
+  min-height: 54px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 14px;
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.navItem svg {
+  width: 23px;
+  height: 23px;
+}
+
+.navItem.active {
+  color: var(--cobalt);
+}
+
+.navItem.active::before {
+  position: absolute;
+  top: -8px;
+  width: 44px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--cobalt);
+  content: "";
+}
+
+.navItem.disabled {
+  cursor: not-allowed;
+}
+
+.signInPage {
+  display: grid;
+  min-height: 100svh;
+  background: var(--white);
+}
+
+.signInIntro {
+  display: flex;
+  min-height: 330px;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: max(24px, env(safe-area-inset-top)) 24px 42px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 92% 24%, rgb(187 166 255 / 60%), transparent 11rem),
+    radial-gradient(circle at 62% 90%, rgb(125 217 187 / 64%), transparent 13rem),
+    var(--sky);
+}
+
+.signInCopy {
+  max-width: 31rem;
+}
+
+.signInMark {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 18px;
+  place-items: center;
+  border-radius: 16px;
+  background: var(--cobalt);
+  box-shadow: var(--shadow-action);
+  color: var(--white);
+}
+
+.signInCopy h1 {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(2.6rem, 12vw, 4.8rem);
+  font-weight: 780;
+  letter-spacing: -0.04em;
+  line-height: 0.98;
+}
+
+.signInCopy p {
+  max-width: 30rem;
+  margin: 18px 0 0;
+  color: var(--ink-soft);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.signInPanel {
+  display: grid;
+  place-items: start center;
+  padding: 28px 20px 48px;
+}
+
+.clerkRoot,
+.clerkCardBox {
+  width: min(100%, 28rem);
+}
+
+.clerkCardBox,
+.clerkCard {
+  box-shadow: none;
+}
+
+.clerkCard {
+  border: 0;
+}
+
+.clerkHeaderTitle,
+.clerkHeaderSubtitle {
+  color: var(--ink);
+}
+
+.clerkFooter {
+  display: none;
+}
+
+@media (max-width: 359px) {
+  .welcome {
+    grid-template-columns: minmax(0, 64%) minmax(0, 36%);
+  }
+
+  .welcome h1 {
+    font-size: 2.35rem;
+  }
+
+  .careImage {
+    right: -18%;
+    width: 145%;
+  }
+
+  .routineIsland {
+    gap: 12px;
+    padding-right: 14px;
+  }
+}
+
+@media (min-width: 760px) {
+  .appCanvas {
+    display: grid;
+    min-height: 100svh;
+    place-items: center;
+    padding: 28px;
+  }
+
+  .appSurface {
+    display: grid;
+    width: min(100%, 1020px);
+    min-height: min(820px, calc(100svh - 56px));
+    grid-template-areas:
+      "header header"
+      "welcome routines"
+      "nav nav";
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 0.86fr);
+    grid-template-rows: auto 1fr auto;
+    border-radius: 42px;
+    box-shadow: 0 34px 90px -58px rgb(16 24 77 / 52%);
+  }
+
+  .appHeader {
+    grid-area: header;
+    padding: 28px 34px 18px;
+  }
+
+  .welcome {
+    grid-area: welcome;
+    min-height: 570px;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .welcomeCopy {
+    padding: 48px 48px 12px;
+  }
+
+  .welcome h1 {
+    max-width: 8ch;
+    font-size: clamp(4rem, 6.5vw, 4.8rem);
+  }
+
+  .welcome p {
+    font-size: 1.08rem;
+  }
+
+  .startButton {
+    min-width: 210px;
+    margin-top: 28px;
+  }
+
+  .coralDot {
+    right: 18px;
+    bottom: 18px;
+    width: 24px;
+    height: 24px;
+  }
+
+  .careIsland {
+    min-height: 210px;
+    margin: 0 28px 18px 0;
+    border-radius: 90px 145px 70px 0;
+  }
+
+  .careImage {
+    right: 4%;
+    bottom: -3%;
+    width: 58%;
+    height: 118%;
+  }
+
+  .routineSection {
+    grid-area: routines;
+    padding: 48px 34px 24px 12px;
+  }
+
+  .sectionHeading {
+    margin-bottom: 24px;
+  }
+
+  .sectionHeading h2 {
+    font-size: 2.15rem;
+  }
+
+  .routineList {
+    gap: 16px;
+  }
+
+  .routineIsland {
+    min-height: 132px;
+    font-size: 1.42rem;
+  }
+
+  .bottomNav {
+    position: relative;
+    grid-area: nav;
+    width: 100%;
+    min-height: 82px;
+    padding-bottom: 10px;
+  }
+
+  .navItem.active::before {
+    top: -8px;
+  }
+
+  .signInPage {
+    grid-template-columns: minmax(0, 1.1fr) minmax(420px, 0.9fr);
+  }
+
+  .signInIntro {
+    min-height: 100svh;
+    padding: 52px clamp(48px, 8vw, 112px) 80px;
+  }
+
+  .signInPanel {
+    place-items: center;
+    padding: 48px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .careImage {
+    animation: care-settle 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@keyframes care-settle {
+  from {
+    transform: translateY(8px) rotate(0.6deg);
+    filter: drop-shadow(0 8px 12px rgb(58 96 135 / 10%));
+  }
+
+  to {
+    transform: translateY(0) rotate(0deg);
+    filter: drop-shadow(0 18px 20px rgb(58 96 135 / 18%));
+  }
+}
