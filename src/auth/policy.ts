@@ -8,6 +8,19 @@ type AccessRequest = {
   userId: string | null;
 };
 
+type UserAccessRequest = Omit<AccessRequest, "pathname">;
+
+export function getUserAccessDecision({
+  allowedUserId,
+  userId,
+}: UserAccessRequest): AccessDecision {
+  if (!userId) {
+    return "sign-in";
+  }
+
+  return userId === allowedUserId ? "allow" : "deny";
+}
+
 export function getAccessDecision({ allowedUserId, pathname, userId }: AccessRequest): AccessDecision {
   const isSignInPath = pathname === "/sign-in" || pathname.startsWith("/sign-in/");
 
@@ -15,9 +28,5 @@ export function getAccessDecision({ allowedUserId, pathname, userId }: AccessReq
     return "allow";
   }
 
-  if (!userId) {
-    return "sign-in";
-  }
-
-  return userId === allowedUserId ? "allow" : "deny";
+  return getUserAccessDecision({ allowedUserId, userId });
 }

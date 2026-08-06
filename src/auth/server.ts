@@ -1,17 +1,22 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { getUserAccessDecision } from "@/auth/policy";
 import { getAllowedClerkUserId } from "@/env/server";
 
 export async function requireAllowedUser(): Promise<string> {
   const { userId, redirectToSignIn } = await auth();
+  const decision = getUserAccessDecision({
+    allowedUserId: getAllowedClerkUserId(),
+    userId,
+  });
 
-  if (!userId) {
+  if (decision === "sign-in") {
     return redirectToSignIn();
   }
 
-  if (userId !== getAllowedClerkUserId()) {
+  if (decision === "deny") {
     redirect("/access-denied");
   }
 
-  return userId;
+  return userId as string;
 }
