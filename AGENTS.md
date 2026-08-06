@@ -1,5 +1,11 @@
 # Repository instructions
 
+<!-- BEGIN:nextjs-agent-rules -->
+
+This version of Next.js can differ from prior versions. Before you change Next.js code, read the applicable guide in `node_modules/next/dist/docs/`. Follow all deprecation notices.
+
+<!-- END:nextjs-agent-rules -->
+
 ## Product sources
 
 - Read `CONTEXT.md` before you change the product. Use its domain terms in code, UI text, documentation, and commits.
