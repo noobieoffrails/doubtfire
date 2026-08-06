@@ -13,7 +13,7 @@ Read these files before you change the product:
 
 - Node.js 22 or later
 - pnpm 10.33.0
-- Docker, or another local Postgres installation
+- Docker with Docker Compose, or Docker CLI with Colima and `docker-compose`
 - A Clerk development application
 
 The setup wizard gives you the exact dashboard steps for Clerk, Railway, Cloudflare, and GitHub:
@@ -22,7 +22,7 @@ The setup wizard gives you the exact dashboard steps for Clerk, Railway, Cloudfl
 ./scripts/setup-private-deployment.sh
 ```
 
-Run the wizard after this change is merged into `main`.
+Run the wizard when you prepare a new local or production environment. It writes development values to `.env.local`, starts the included Postgres service, installs packages, and applies migrations. It also gives one dashboard action at a time for Clerk, Railway, Cloudflare, and GitHub.
 
 ## Local setup
 
