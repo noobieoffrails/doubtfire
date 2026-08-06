@@ -52,7 +52,7 @@ A Task never Ticked is Due. A Run for Routine R presents every non-archived Task
 
 ### 1 — Scaffold
 
-Next.js on Railway, Postgres provisioned, Drizzle with migrations, Clerk gating every route, manifest and icon set, and a deploy that installs to an Android tablet and an iPhone home screen and looks like an app. The Clerk Hobby plan has a fixed seven-day session lifetime. Confirm that the repeat sign-in experience is acceptable on the tablet and phone before building anything on top.
+Next.js on Railway, Postgres provisioned, Drizzle with migrations, Clerk gating every route, manifest and icon set, and a deploy that installs to an iPhone home screen and looks like an app. The Clerk Hobby plan has a fixed seven-day session lifetime. Confirm that the repeat sign-in experience is acceptable on the iPhone before building anything on top. Android tablet acceptance is deferred by the repository owner.
 
 ### 2 — Import
 
