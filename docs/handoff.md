@@ -2,7 +2,7 @@
 
 ## Current state
 
-Phase 1 is complete. The repository contains the Next.js scaffold, Postgres schema and migration, Clerk access guard, PWA assets, language toggle, crawler controls, tests, CI, and Railway deployment configuration.
+Phase 1 implementation and deployment are complete. The repository contains the Next.js scaffold, Postgres schema and migration, Clerk access guard, PWA assets, language toggle, crawler controls, tests, CI, and Railway deployment configuration.
 
 The production app runs on Railway in EU West with Postgres in the same region. Cloudflare serves the custom app domain. Clerk production uses Restricted mode and one predefined account. Production sign-in works.
 
@@ -16,7 +16,11 @@ The repository owner accepted installation and sign-in from the iPhone home scre
 4. [`fixtures/example-cleaning-list.md`](../fixtures/example-cleaning-list.md) defines the invented import format.
 5. [`docs/private-deployment.md`](./private-deployment.md) defines the access and deployment controls.
 
-## Next work
+## Current acceptance gate
+
+Confirm the iPhone repeat sign-in experience after Clerk's seven-day session lifetime. Do not start Phase 2 product work until the repository owner accepts that result.
+
+## Work after acceptance
 
 Start Phase 2: Import. Build and test the Markdown parser and the `pnpm seed [path-to-list.md]` command against the invented fixture. Do not add real household content to the repository.
 
