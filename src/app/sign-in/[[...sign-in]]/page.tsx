@@ -57,6 +57,9 @@ export default async function SignInPage() {
             },
           }}
         />
+        <Link className="privacyLink" href="/privacy">
+          {copy.cookieInformation}
+        </Link>
       </section>
     </main>
   );

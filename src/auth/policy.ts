@@ -1,6 +1,6 @@
 export type AccessDecision = "allow" | "deny" | "sign-in";
 
-const publicPaths = new Set(["/access-denied", "/health", "/robots.txt"]);
+const publicPaths = new Set(["/access-denied", "/health", "/privacy", "/robots.txt"]);
 
 type AccessRequest = {
   allowedUserId: string;

@@ -13,7 +13,7 @@ describe("getAccessDecision", () => {
     ).toBe("allow");
   });
 
-  it.each(["/sign-in/factor-one", "/access-denied", "/health", "/robots.txt"])(
+  it.each(["/sign-in/factor-one", "/access-denied", "/health", "/privacy", "/robots.txt"])(
     "allows the public route %s without a user",
     (pathname) => {
       expect(
