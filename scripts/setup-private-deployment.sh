@@ -310,11 +310,12 @@ warn "Railway can show a failed first deployment before the required variables e
 step "Open Settings for the app service. Select EU West."
 step "Open Settings for Postgres. Select EU West and wait until Postgres is healthy."
 step "Open the app service, not Postgres. Open its Variables tab."
-step "Select New Variable. Enter DATABASE_URL as the name and this value:"
-note 'DATABASE_URL = ${{Postgres.DATABASE_URL}}'
+step "Select New Variable and enter these two fields:"
+note "Name: DATABASE_URL"
+note 'Value: ${{Postgres.DATABASE_URL}}'
 note "If the database has another name, use Railway autocomplete to select its DATABASE_URL."
 warn "Do not use the purple Add a Variable Reference help link. It opens the documentation."
-pause "Continue when the app and Postgres services exist."
+pause "Continue when both services use EU West and the app has the database reference."
 
 stage "First Railway deployment" 6
 say "Use the development Clerk values for one temporary deployment."
