@@ -6,7 +6,7 @@ This document records the private deployment controls for Doubtfire. Run [`scrip
 
 Clerk is the authentication provider. The Clerk production instance must use Restricted sign-up mode. An administrator creates one production user manually. There is no sign-up route in Doubtfire.
 
-Keep Clerk's email, username, and password sign-up methods enabled. These methods define the fields that the administrator can use when they create the predefined account. Restricted mode prevents public sign-up. If these methods are disabled, Clerk reports invalid authentication settings and the predefined user cannot sign in.
+Keep Clerk's email, username, and password sign-up methods enabled. These methods let the predefined account use those identifiers and its password. Restricted mode prevents public sign-up. If these methods are disabled, Clerk reports invalid authentication settings and the predefined user cannot sign in.
 
 `ALLOWED_CLERK_USER_ID` contains the ID of that one user. Doubtfire compares each signed-in Clerk user with this value. It denies every other Clerk user. This check protects the app if the Clerk sign-up setting changes by mistake.
 
