@@ -68,4 +68,18 @@ GitHub Actions runs lint, type checks, tests, and a production build for each pu
 
 CI uses an isolated Postgres service for the content-management integration tests.
 
+### Run rollover service
+
+The app closes a stale open Run when someone next opens the app. A separate Railway cron service also closes stale Runs without a request.
+
+Create the service from the same repository. Set its Railway Config File path to `/railway.rollover.json`, give it the existing Postgres `DATABASE_URL` reference, and set this UTC cron schedule:
+
+```text
+0 1,2 * * *
+```
+
+The two UTC start times cover both Helsinki offsets. The database function closes a Run only after local 04:00. The service has no public domain and exits after each check.
+
+The setup wizard gives these Railway steps one at a time.
+
 See [`docs/private-deployment.md`](./docs/private-deployment.md) for the security model and manual checks. See [`docs/privacy-and-cookies.md`](./docs/privacy-and-cookies.md) for the current cookie assessment.
