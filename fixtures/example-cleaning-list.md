@@ -6,12 +6,15 @@ against. It is not anyone's real cleaning list.
 It deliberately exercises every structural feature the parser has to handle: cumulative tiers, a
 standalone tier, a whole-home room, group headings, notes, and one three-deep nesting.
 
-Format: `##` headings are Routines, `**bold**` headings are Rooms, bullets are Tasks, and nested
-bullets are either further Tasks (when the parent is a Group heading) or Notes on the parent Task.
+Format: `##` headings are Routines, a `Cadence: N days` line sets each Routine cadence,
+`**bold**` headings are Rooms, bullets are Tasks, and nested bullets are either further Tasks
+(when the parent is a Group heading) or Notes on the parent Task.
 
 ---
 
 ## Weekly
+
+Cadence: 7 days
 
 **Whole home**
 
@@ -35,6 +38,7 @@ bullets are either further Tasks (when the parent is a Group heading) or Notes o
 
 ## Fortnightly
 
+Cadence: 14 days
 Includes: Weekly
 
 **Hallway**
@@ -62,6 +66,7 @@ Includes: Weekly
 
 ## Quarterly
 
+Cadence: 91 days
 Includes: Fortnightly
 
 **Whole home**
@@ -79,6 +84,7 @@ Includes: Fortnightly
 
 ## Twice yearly
 
+Cadence: 182 days
 Includes: Quarterly
 
 **Bathroom**
@@ -90,6 +96,8 @@ Includes: Quarterly
   - Clean the shelves inside
 
 ## Yearly
+
+Cadence: 365 days
 
 **Whole home**
 

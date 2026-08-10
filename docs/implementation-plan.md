@@ -52,7 +52,7 @@ A Task never Ticked is Due. A Run for Routine R presents every non-archived Task
 
 ### 1 — Scaffold
 
-Next.js on Railway, Postgres provisioned, Drizzle with migrations, Clerk gating every route, manifest and icon set, and a deploy that installs to an iPhone home screen and looks like an app. The Clerk Hobby plan has a fixed seven-day session lifetime. Confirm that the repeat sign-in experience is acceptable on the iPhone before building anything on top. Android tablet acceptance is deferred by the repository owner.
+Next.js on Railway, Postgres provisioned, Drizzle with migrations, Clerk gating every route, manifest and icon set, and a deploy that installs to an iPhone home screen and looks like an app. The Clerk Hobby plan has a fixed seven-day session lifetime. Track the repeat sign-in check as a deployment follow-up. It does not block product work. Android tablet acceptance is deferred by the repository owner.
 
 ### 2 — Import
 
@@ -62,7 +62,9 @@ Build a parser and a seed command, not a one-off script:
 pnpm seed [path-to-list.md]     # defaults to fixtures/example-cleaning-list.md
 ```
 
-The format is documented by [`fixtures/example-cleaning-list.md`](../fixtures/example-cleaning-list.md), which is invented content exercising every structural case: cumulative tiers via an `Includes:` line, a tier with no `Includes:` (standalone), a whole-home Room, Group headings, Notes, and one three-deep nesting. Test the parser against that fixture.
+The command asks the owner to resolve each ambiguous nested bullet. It then shows a two-column source and proposed-structure review. The review keeps each unrecognized non-empty source line and marks it as no database change. The command writes only after the owner types `WRITE`, and it refuses to write when the database already contains a Routine, Room, or Task.
+
+The format is documented by [`fixtures/example-cleaning-list.md`](../fixtures/example-cleaning-list.md), which is invented content exercising every structural case: explicit Cadences in days, cumulative tiers via an `Includes:` line, a tier with no `Includes:` (standalone), a whole-home Room, Group headings, Notes, and one three-deep nesting. Test the parser against that fixture.
 
 The real list is passed by path from outside the repository. Two things about it the parser cannot decide alone:
 
