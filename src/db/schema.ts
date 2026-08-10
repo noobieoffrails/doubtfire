@@ -1,6 +1,5 @@
 import { sql } from "drizzle-orm";
 import {
-  AnyPgColumn,
   boolean,
   check,
   foreignKey,
@@ -13,6 +12,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import type { AnyPgColumn } from "drizzle-orm/pg-core";
 
 const timestamps = {
   archivedAt: timestamp("archived_at", { withTimezone: true }),
