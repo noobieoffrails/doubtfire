@@ -12,15 +12,17 @@ import Link from "next/link";
 import { LanguageToggle } from "@/components/language-toggle";
 import { RoutineArt } from "@/components/routine-art";
 import { Button } from "@/components/ui/button";
+import { createContentCatalog } from "@/content/content-catalog";
+import { getDatabase } from "@/db/client";
 import { dictionaries } from "@/i18n/config";
 import { getRequestLocale } from "@/i18n/server";
 import { allowsLocalPreview } from "@/lib/local-preview";
 import { requireAllowedUser } from "@/auth/server";
 
-const routines = [
-  { key: "weekly", iconTone: "sky", shape: "islandWeekly" },
-  { key: "fortnightly", iconTone: "mint", shape: "islandFortnightly" },
-  { key: "quarterly", iconTone: "lilac", shape: "islandQuarterly" },
+const routineStyles = [
+  { iconTone: "sky", shape: "islandSky", art: "weekly" },
+  { iconTone: "mint", shape: "islandMint", art: "fortnightly" },
+  { iconTone: "lilac", shape: "islandLilac", art: "quarterly" },
 ] as const;
 
 export default async function HomePage() {
@@ -32,6 +34,7 @@ export default async function HomePage() {
 
   const locale = await getRequestLocale();
   const copy = dictionaries[locale];
+  const content = await createContentCatalog(getDatabase()).list();
 
   return (
     <main className="appCanvas">
@@ -89,25 +92,38 @@ export default async function HomePage() {
             <h2 id="routine-title">{copy.routines}</h2>
           </div>
           <ul className="routineList">
-            {routines.map((routine) => (
-              <li key={routine.key}>
-                <button
-                  className={`routineIsland ${routine.shape}`}
-                  type="button"
-                  disabled
-                  aria-describedby="phase-note"
-                >
-                  <span className={`routineIcon ${routine.iconTone}`} aria-hidden="true">
-                    <CalendarDays strokeWidth={2} />
-                  </span>
-                  <span>{copy[routine.key]}</span>
-                  <span className="islandLinework" aria-hidden="true">
-                    <RoutineArt variant={routine.key} />
-                  </span>
-                </button>
-              </li>
-            ))}
+            {content.routines.map((routine, index) => {
+              const style = routineStyles[index % routineStyles.length];
+
+              return (
+                <li key={routine.id}>
+                  <button
+                    className={`routineIsland ${style.shape}`}
+                    type="button"
+                    disabled
+                    aria-describedby="phase-note"
+                  >
+                    <span
+                      className={`routineIcon ${style.iconTone}`}
+                      aria-hidden="true"
+                    >
+                      <CalendarDays strokeWidth={2} />
+                    </span>
+                    <span>{routine.name}</span>
+                    <span className="islandLinework" aria-hidden="true">
+                      <RoutineArt variant={style.art} />
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
+          {content.routines.length === 0 ? (
+            <div className="homeEmptyState">
+              <p>{copy.noHomeRoutines}</p>
+              <Link href="/settings">{copy.manageRoutines}</Link>
+            </div>
+          ) : null}
         </section>
 
         <nav className="bottomNav" aria-label={copy.primaryNavigation}>
@@ -119,10 +135,10 @@ export default async function HomePage() {
             <Clock3 aria-hidden="true" strokeWidth={2.1} />
             <span>{copy.history}</span>
           </span>
-          <span className="navItem disabled" aria-disabled="true">
+          <Link className="navItem" href="/settings">
             <Settings aria-hidden="true" strokeWidth={2.1} />
             <span>{copy.settings}</span>
-          </span>
+          </Link>
         </nav>
       </section>
     </main>

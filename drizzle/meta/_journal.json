@@ -8,6 +8,13 @@
       "when": 1786030784188,
       "tag": "0000_initial_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1786379362947,
+      "tag": "0001_red_spacker_dave",
+      "breakpoints": true
     }
   ]
 }
