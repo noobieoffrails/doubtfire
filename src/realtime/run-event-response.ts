@@ -59,9 +59,7 @@ export function createRunEventResponse({
         return;
       }
 
-      controller.enqueue(
-        encoder.encode("retry: 2000\n\nevent: connected\ndata: {}\n\n"),
-      );
+      controller.enqueue(encodeEvent("connected", {}));
       heartbeat = setInterval(() => {
         if (!closed) {
           controller.enqueue(encoder.encode(": keepalive\n\n"));

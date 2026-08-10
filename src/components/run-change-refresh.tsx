@@ -18,10 +18,8 @@ export function useRunChangeRefresh(
   }, [refreshCurrent, router]);
 
   useEffect(() => {
-    const eventSource = new EventSource("/api/run-events");
-
     return connectRunSync({
-      eventSource,
+      openEventSource: () => new EventSource("/api/run-events"),
       refresh,
     });
   }, [refresh]);

@@ -26,7 +26,7 @@ describe("Run event response", () => {
 
     const connected = await reader.read();
     expect(decoder.decode(connected.value)).toBe(
-      "retry: 2000\n\nevent: connected\ndata: {}\n\n",
+      "event: connected\ndata: {}\n\n",
     );
 
     announceRunChange({ runId: "a3b6f09d-a5f5-4608-b1c3-3ee25f03914c" });
