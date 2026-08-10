@@ -22,9 +22,9 @@ Confirm the iPhone repeat sign-in experience after Clerk's seven-day session lif
 
 ## Current product work
 
-Start Phase 2: Import. Build and test the Markdown parser and the `pnpm seed [path-to-list.md]` command against the invented fixture. Do not add real household content to the repository.
+Phase 2 implementation is complete. The Markdown parser and `pnpm seed [path-to-list.md]` command use the invented fixture and an isolated Postgres integration test. Do not add real household content to the repository.
 
-Before a real import writes to Postgres, create the required two-column source and proposed-structure diff. The repository owner must review every ambiguous nested bullet and Routine relationship.
+The real import is still pending. Run the command with the private list path. Resolve each ambiguous nested bullet, review the two-column source and proposed structure, and type `WRITE` only after the proposal is correct.
 
 ## Product constraints
 

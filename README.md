@@ -41,6 +41,32 @@ For local visual work without a Clerk session, set `DOUBTFIRE_ALLOW_UNAUTHENTICA
 
 Do not use the preview flag to test authentication. Use the Clerk development instance for authentication tests.
 
+## Import a cleaning list
+
+The default command reads the invented example fixture:
+
+```bash
+pnpm seed
+```
+
+Pass a private file path to import a real list. Keep that file outside this public repository:
+
+```bash
+pnpm seed /path/to/private-cleaning-list.md
+```
+
+Each Routine must have a Cadence in days:
+
+```md
+## Weekly
+
+Cadence: 7 days
+```
+
+The command asks whether each ambiguous parent bullet is a Group or a Task with Notes. It then shows the source and proposed structure in two columns. Review every row. The command writes only when you type `WRITE` exactly.
+
+The seed command writes in one transaction and only to an empty database. It does not replace or delete existing Routines, Rooms, or Tasks.
+
 ## Checks
 
 ```bash
@@ -59,5 +85,7 @@ Railway builds the root `Dockerfile`. It runs `pnpm db:migrate` before deploymen
 The app requires a persistent container because later phases use server-sent events and Postgres `LISTEN/NOTIFY`.
 
 GitHub Actions runs lint, type checks, tests, and a production build for each pull request. Railway deploys `main` after the GitHub checks pass. GitHub Actions does not hold production secrets and does not deploy the app.
+
+CI uses an isolated Postgres service for the seed integration tests.
 
 See [`docs/private-deployment.md`](./docs/private-deployment.md) for the security model and manual checks. See [`docs/privacy-and-cookies.md`](./docs/privacy-and-cookies.md) for the current cookie assessment.
