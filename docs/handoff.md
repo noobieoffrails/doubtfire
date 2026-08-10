@@ -16,11 +16,11 @@ The repository owner accepted installation and sign-in from the iPhone home scre
 4. [`fixtures/example-cleaning-list.md`](../fixtures/example-cleaning-list.md) defines the invented import format.
 5. [`docs/private-deployment.md`](./private-deployment.md) defines the access and deployment controls.
 
-## Current acceptance gate
+## Deployment follow-up
 
-Confirm the iPhone repeat sign-in experience after Clerk's seven-day session lifetime. Do not start Phase 2 product work until the repository owner accepts that result.
+Confirm the iPhone repeat sign-in experience after Clerk's seven-day session lifetime. This check does not block product work.
 
-## Work after acceptance
+## Current product work
 
 Start Phase 2: Import. Build and test the Markdown parser and the `pnpm seed [path-to-list.md]` command against the invented fixture. Do not add real household content to the repository.
 
