@@ -38,4 +38,29 @@ describe("Run event response", () => {
     abortController.abort();
     await expect.poll(() => stopListening).toHaveBeenCalledOnce();
   });
+
+  it("releases a slow listener when the HTTP stream closes", async () => {
+    const abortController = new AbortController();
+    let finishUnlistening: () => void = () => undefined;
+    const stopListening = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          finishUnlistening = resolve;
+        }),
+    );
+    const response = createRunEventResponse({
+      signal: abortController.signal,
+      subscribe: async () => stopListening,
+    });
+    const reader = response.body!.getReader();
+    await reader.read();
+
+    abortController.abort();
+    const canceled = reader.cancel();
+    finishUnlistening();
+
+    await canceled;
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(stopListening).toHaveBeenCalledOnce();
+  });
 });

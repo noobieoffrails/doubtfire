@@ -19,33 +19,34 @@ export function createRunEventResponse({
 }): Response {
   let stopListening: (() => Promise<void>) | null = null;
   let heartbeat: ReturnType<typeof setInterval> | null = null;
+  let handleAbort: (() => void) | null = null;
   let closed = false;
+
+  async function releaseResources(): Promise<void> {
+    if (closed) {
+      return;
+    }
+
+    closed = true;
+
+    if (handleAbort) {
+      signal.removeEventListener("abort", handleAbort);
+    }
+
+    if (heartbeat) {
+      clearInterval(heartbeat);
+    }
+
+    if (stopListening) {
+      await stopListening();
+    }
+  }
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
-      async function closeStream(): Promise<void> {
-        if (closed) {
-          return;
-        }
-
-        closed = true;
-        signal.removeEventListener("abort", handleAbort);
-
-        if (heartbeat) {
-          clearInterval(heartbeat);
-        }
-
-        if (stopListening) {
-          await stopListening();
-        }
-
-        controller.close();
-      }
-
-      function handleAbort(): void {
-        void closeStream();
-      }
-
+      handleAbort = () => {
+        void releaseResources();
+      };
       signal.addEventListener("abort", handleAbort, { once: true });
       stopListening = await subscribe((change) => {
         if (!closed) {
@@ -68,19 +69,7 @@ export function createRunEventResponse({
       }, 25_000);
     },
     async cancel() {
-      if (closed) {
-        return;
-      }
-
-      closed = true;
-
-      if (heartbeat) {
-        clearInterval(heartbeat);
-      }
-
-      if (stopListening) {
-        await stopListening();
-      }
+      await releaseResources();
     },
   });
 
