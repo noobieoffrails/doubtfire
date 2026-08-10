@@ -10,13 +10,15 @@ import {
   RotateCcw,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 
 import {
   closeRunAction,
+  getRunAction,
   reopenRunAction,
   setTickAction,
 } from "@/app/run/actions";
+import { useRunChangeRefresh } from "@/components/run-change-refresh";
 import { Button } from "@/components/ui/button";
 import type { RunView } from "@/runs/run-manager";
 
@@ -99,7 +101,24 @@ export function RunFlow({ initialRun, copy }: { initialRun: RunView; copy: RunCo
   const [isClosing, startClosing] = useTransition();
   const taskMutationQueues = useRef(new Map<string, Promise<void>>());
   const taskMutationVersions = useRef(new Map<string, number>());
+  const pendingTickChoices = useRef(new Map<string, boolean>());
   const activeRoom = run.rooms.find((room) => room.id === activeRoomId) ?? null;
+
+  const refreshCurrentRun = useCallback(async () => {
+    let synchronizedRun = await getRunAction(run.id);
+
+    for (const [taskId, ticked] of pendingTickChoices.current) {
+      synchronizedRun = withTick(synchronizedRun, taskId, ticked);
+    }
+
+    setRun(synchronizedRun);
+
+    if (synchronizedRun.closedAt) {
+      setActiveRoomId(null);
+    }
+  }, [run.id]);
+
+  useRunChangeRefresh(refreshCurrentRun);
 
   useEffect(() => {
     if (!undoVisible) {
@@ -113,6 +132,7 @@ export function RunFlow({ initialRun, copy }: { initialRun: RunView; copy: RunCo
   function changeTick(taskId: string, ticked: boolean) {
     const version = (taskMutationVersions.current.get(taskId) ?? 0) + 1;
     taskMutationVersions.current.set(taskId, version);
+    pendingTickChoices.current.set(taskId, ticked);
     setError(null);
     setRun((currentRun) => withTick(currentRun, taskId, ticked));
 
@@ -127,10 +147,12 @@ export function RunFlow({ initialRun, copy }: { initialRun: RunView; copy: RunCo
             .find((task) => task.id === taskId);
 
           if (savedTask && taskMutationVersions.current.get(taskId) === version) {
+            pendingTickChoices.current.delete(taskId);
             setRun((currentRun) => withTick(currentRun, taskId, savedTask.ticked));
           }
         } catch {
           if (taskMutationVersions.current.get(taskId) === version) {
+            pendingTickChoices.current.delete(taskId);
             setRun((currentRun) => withTick(currentRun, taskId, !ticked));
             setError(copy.runChangeError);
           }
