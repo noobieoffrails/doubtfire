@@ -51,20 +51,42 @@ type Bullet = {
 
 type RoomDraft = {
   name: string;
+  sourceLine: number;
   bullets: Bullet[];
 };
 
 type RoutineDraft = {
   name: string;
+  sourceLine: number;
   cadenceDays: number | null;
   includesRoutineName: string | null;
   rooms: RoomDraft[];
 };
 
+type IgnoredSourceLine = {
+  sourceLine: number;
+  text: string;
+};
+
+type CleaningListDraft = {
+  routines: RoutineDraft[];
+  ignoredLines: IgnoredSourceLine[];
+};
+
+type OrderedReviewRow = ImportReviewRow & {
+  sourceLine: number;
+};
+
+type TaskDraftForReview = Omit<TaskImport, "sortOrder"> & {
+  source: string;
+  sourceLine: number;
+};
+
 const sortOrderGap = 100;
 
-function parseDraft(markdown: string): RoutineDraft[] {
+function parseDraft(markdown: string): CleaningListDraft {
   const routines: RoutineDraft[] = [];
+  const ignoredLines: IgnoredSourceLine[] = [];
   let routine: RoutineDraft | null = null;
   let room: RoomDraft | null = null;
   let bulletStack: Bullet[] = [];
@@ -76,6 +98,7 @@ function parseDraft(markdown: string): RoutineDraft[] {
     if (routineMatch) {
       routine = {
         name: routineMatch[1],
+        sourceLine,
         cadenceDays: null,
         includesRoutineName: null,
         rooms: [],
@@ -86,13 +109,24 @@ function parseDraft(markdown: string): RoutineDraft[] {
       continue;
     }
 
+    if (line.trim() === "") {
+      continue;
+    }
+
     if (!routine) {
+      ignoredLines.push({ sourceLine, text: line });
       continue;
     }
 
     const cadenceMatch = line.match(/^Cadence:\s*(\d+)\s+days?\s*$/iu);
 
     if (cadenceMatch) {
+      if (routine.cadenceDays !== null) {
+        throw new Error(
+          `Routine "${routine.name}" has more than one Cadence.`,
+        );
+      }
+
       routine.cadenceDays = Number.parseInt(cadenceMatch[1], 10);
       continue;
     }
@@ -100,6 +134,12 @@ function parseDraft(markdown: string): RoutineDraft[] {
     const includesMatch = line.match(/^Includes:\s*(.+?)\s*$/iu);
 
     if (includesMatch) {
+      if (routine.includesRoutineName !== null) {
+        throw new Error(
+          `Routine "${routine.name}" has more than one Includes line.`,
+        );
+      }
+
       routine.includesRoutineName = includesMatch[1];
       continue;
     }
@@ -107,7 +147,7 @@ function parseDraft(markdown: string): RoutineDraft[] {
     const roomMatch = line.match(/^\*\*(.+?)\*\*\s*$/u);
 
     if (roomMatch) {
-      room = { name: roomMatch[1], bullets: [] };
+      room = { name: roomMatch[1], sourceLine, bullets: [] };
       routine.rooms.push(room);
       bulletStack = [];
       continue;
@@ -116,6 +156,7 @@ function parseDraft(markdown: string): RoutineDraft[] {
     const bulletMatch = line.match(/^(\s*)-\s+(.+?)\s*$/u);
 
     if (!bulletMatch || !room) {
+      ignoredLines.push({ sourceLine, text: line });
       continue;
     }
 
@@ -148,14 +189,15 @@ function parseDraft(markdown: string): RoutineDraft[] {
     bulletStack[depth] = bullet;
   }
 
-  return routines;
+  return { routines, ignoredLines };
 }
 
 export async function prepareCleaningList(
   markdown: string,
   decideNestedBullet: DecideNestedBullet,
 ): Promise<CleaningListPlan> {
-  const drafts = parseDraft(markdown);
+  const draft = parseDraft(markdown);
+  const drafts = draft.routines;
   const routineNames = new Set<string>();
   const routines: RoutineImport[] = drafts.map((routine, index) => {
     if (routineNames.has(routine.name)) {
@@ -166,6 +208,12 @@ export async function prepareCleaningList(
 
     if (routine.cadenceDays === null) {
       throw new Error(`Routine "${routine.name}" has no Cadence.`);
+    }
+
+    if (routine.cadenceDays <= 0) {
+      throw new Error(
+        `Routine "${routine.name}" must have a positive Cadence.`,
+      );
     }
 
     return {
@@ -208,7 +256,8 @@ export async function prepareCleaningList(
   const rooms: RoomImport[] = [];
   const roomNames = new Set<string>();
   const tasks: TaskImport[] = [];
-  const reviewRows: ImportReviewRow[] = routines.map((routine) => ({
+  const reviewRows: OrderedReviewRow[] = routines.map((routine, index) => ({
+    sourceLine: drafts[index].sourceLine,
     source: [
       `## ${routine.name}`,
       `Cadence: ${routine.cadenceDays} days`,
@@ -226,25 +275,17 @@ export async function prepareCleaningList(
   }));
   const taskCountByRoom = new Map<string, number>();
 
-  function addTask(
-    routineName: string,
-    roomName: string,
-    text: string,
-    note: string | null,
-    groupLabel: string | null,
-    source: string,
-  ) {
+  function addTask(task: TaskDraftForReview) {
+    const { source, sourceLine, ...taskImport } = task;
+    const { groupLabel, note, roomName, routineName, text } = taskImport;
     const nextTaskIndex = (taskCountByRoom.get(roomName) ?? 0) + 1;
     taskCountByRoom.set(roomName, nextTaskIndex);
     tasks.push({
-      text,
-      note,
-      roomName,
-      groupLabel,
-      routineName,
+      ...taskImport,
       sortOrder: nextTaskIndex * sortOrderGap,
     });
     reviewRows.push({
+      sourceLine,
       source,
       proposed: [
         `Task: ${text}`,
@@ -260,28 +301,33 @@ export async function prepareCleaningList(
 
   for (const routine of drafts) {
     for (const room of routine.rooms) {
-      if (!roomNames.has(room.name)) {
+      const isNewRoom = !roomNames.has(room.name);
+
+      if (isNewRoom) {
         roomNames.add(room.name);
         rooms.push({
           name: room.name,
           sortOrder: rooms.length * sortOrderGap + sortOrderGap,
         });
-        reviewRows.push({
-          source: `**${room.name}**`,
-          proposed: `Room: ${room.name}`,
-        });
       }
+
+      reviewRows.push({
+        sourceLine: room.sourceLine,
+        source: `**${room.name}**`,
+        proposed: `Room: ${room.name}${isNewRoom ? "" : " (reuse existing Room)"}`,
+      });
 
       for (const bullet of room.bullets) {
         if (bullet.children.length === 0) {
-          addTask(
-            routine.name,
-            room.name,
-            bullet.text,
-            null,
-            null,
-            `- ${bullet.text}`,
-          );
+          addTask({
+            routineName: routine.name,
+            roomName: room.name,
+            text: bullet.text,
+            note: null,
+            groupLabel: null,
+            source: `- ${bullet.text}`,
+            sourceLine: bullet.sourceLine,
+          });
           continue;
         }
 
@@ -297,40 +343,56 @@ export async function prepareCleaningList(
             });
 
         if (decision === "task") {
-          addTask(
-            routine.name,
-            room.name,
-            bullet.text,
-            bullet.children.map((child) => child.text).join("\n"),
-            null,
-            [`- ${bullet.text}`]
+          addTask({
+            routineName: routine.name,
+            roomName: room.name,
+            text: bullet.text,
+            note: bullet.children.map((child) => child.text).join("\n"),
+            groupLabel: null,
+            source: [`- ${bullet.text}`]
               .concat(
                 bullet.children.map((child) => `  - ${child.text}`),
               )
               .join("\n"),
-          );
+            sourceLine: bullet.sourceLine,
+          });
           continue;
         }
 
         for (const child of bullet.children) {
-          addTask(
-            routine.name,
-            room.name,
-            child.text,
-            child.children.length > 0
+          addTask({
+            routineName: routine.name,
+            roomName: room.name,
+            text: child.text,
+            note: child.children.length > 0
               ? child.children.map((note) => note.text).join("\n")
               : null,
-            bullet.text,
-            [`- ${bullet.text}`, `  - ${child.text}`]
+            groupLabel: bullet.text,
+            source: [`- ${bullet.text}`, `  - ${child.text}`]
               .concat(
                 child.children.map((note) => `    - ${note.text}`),
               )
               .join("\n"),
-          );
+            sourceLine: bullet.sourceLine,
+          });
         }
       }
     }
   }
 
-  return { routines, rooms, tasks, reviewRows };
+  reviewRows.push(
+    ...draft.ignoredLines.map((line) => ({
+      sourceLine: line.sourceLine,
+      source: line.text,
+      proposed: "Ignored source line (no database change)",
+    })),
+  );
+  reviewRows.sort((left, right) => left.sourceLine - right.sourceLine);
+
+  return {
+    routines,
+    rooms,
+    tasks,
+    reviewRows: reviewRows.map(({ source, proposed }) => ({ source, proposed })),
+  };
 }

@@ -73,6 +73,25 @@ describe("runSeedCommand", () => {
     expect(prompts[1]).toContain("Select 1 or 2");
   });
 
+  it("shows child bullets in an ambiguity question", async () => {
+    const answers = ["2", "no"];
+    const prompts: string[] = [];
+
+    await runSeedCommand(["private-list.md"], {
+      readTextFile: async () => exampleMarkdown,
+      prompt: async (message) => {
+        prompts.push(message);
+        return answers.shift() ?? "";
+      },
+      write: () => undefined,
+      store: { insert: vi.fn() },
+    });
+
+    expect(prompts[0]).toContain(
+      "- Remember behind the storage box",
+    );
+  });
+
   it("writes the reviewed plan after explicit approval", async () => {
     const answers = ["2", "WRITE"];
     const insert = vi.fn();

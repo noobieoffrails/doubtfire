@@ -26,6 +26,7 @@ async function askNestedBullet(
 ): Promise<NestedBulletDecision> {
   const message = [
     `"${question.text}" has nested bullets on source line ${question.sourceLine}.`,
+    ...question.children.map((child) => `- ${child}`),
     "1. Group with Tasks",
     "2. Task with Notes",
     "Select 1 or 2: ",

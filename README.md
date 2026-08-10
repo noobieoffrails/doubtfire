@@ -63,7 +63,7 @@ Each Routine must have a Cadence in days:
 Cadence: 7 days
 ```
 
-The command asks whether each ambiguous parent bullet is a Group or a Task with Notes. It then shows the source and proposed structure in two columns. Review every row. The command writes only when you type `WRITE` exactly.
+The command asks whether each ambiguous parent bullet is a Group or a Task with Notes. It then shows the source and proposed structure in two columns. An unrecognized non-empty source line stays in the review and is marked as no database change. Review every row. The command writes only when you type `WRITE` exactly.
 
 The seed command writes in one transaction and only to an empty database. It does not replace or delete existing Routines, Rooms, or Tasks.
 

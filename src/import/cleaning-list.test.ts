@@ -175,4 +175,68 @@ Includes: Weekly
       prepareCleaningList(markdown, async () => "task"),
     ).rejects.toThrow("Routine Includes links contain a cycle.");
   });
+
+  it("shows unrecognized source prose in the review", async () => {
+    const markdown = `
+## Yearly
+Cadence: 365 days
+This Routine is also said to include all earlier work.
+**Whole home**
+- Wash the windows
+`;
+
+    const plan = await prepareCleaningList(markdown, async () => "task");
+
+    expect(plan.reviewRows).toContainEqual({
+      source: "This Routine is also said to include all earlier work.",
+      proposed: "Ignored source line (no database change)",
+    });
+  });
+
+  it("rejects a non-positive Cadence before review", async () => {
+    const markdown = `
+## Weekly
+Cadence: 0 days
+**Kitchen**
+- Wipe the worktops
+`;
+
+    await expect(
+      prepareCleaningList(markdown, async () => "task"),
+    ).rejects.toThrow('Routine "Weekly" must have a positive Cadence.');
+  });
+
+  it("rejects more than one Cadence for a Routine", async () => {
+    const markdown = `
+## Weekly
+Cadence: 7 days
+Cadence: 14 days
+**Kitchen**
+- Wipe the worktops
+`;
+
+    await expect(
+      prepareCleaningList(markdown, async () => "task"),
+    ).rejects.toThrow('Routine "Weekly" has more than one Cadence.');
+  });
+
+  it("rejects more than one Includes line for a Routine", async () => {
+    const markdown = `
+## Weekly
+Cadence: 7 days
+**Kitchen**
+- Wipe the worktops
+
+## Fortnightly
+Cadence: 14 days
+Includes: Weekly
+Includes: Weekly
+**Bathroom**
+- Clean the basin
+`;
+
+    await expect(
+      prepareCleaningList(markdown, async () => "task"),
+    ).rejects.toThrow('Routine "Fortnightly" has more than one Includes line.');
+  });
 });

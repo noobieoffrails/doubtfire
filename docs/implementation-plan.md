@@ -62,7 +62,7 @@ Build a parser and a seed command, not a one-off script:
 pnpm seed [path-to-list.md]     # defaults to fixtures/example-cleaning-list.md
 ```
 
-The command asks the owner to resolve each ambiguous nested bullet. It then shows a two-column source and proposed-structure review. It writes only after the owner types `WRITE`, and it refuses to write when the database already contains a Routine, Room, or Task.
+The command asks the owner to resolve each ambiguous nested bullet. It then shows a two-column source and proposed-structure review. The review keeps each unrecognized non-empty source line and marks it as no database change. The command writes only after the owner types `WRITE`, and it refuses to write when the database already contains a Routine, Room, or Task.
 
 The format is documented by [`fixtures/example-cleaning-list.md`](../fixtures/example-cleaning-list.md), which is invented content exercising every structural case: explicit Cadences in days, cumulative tiers via an `Includes:` line, a tier with no `Includes:` (standalone), a whole-home Room, Group headings, Notes, and one three-deep nesting. Test the parser against that fixture.
 
