@@ -1,10 +1,12 @@
 import { UserButton } from "@clerk/nextjs";
 import {
   CalendarDays,
+  CheckCircle2,
   CircleUserRound,
   Clock3,
   Home,
-  LockKeyhole,
+  Play,
+  RotateCcw,
   Settings,
 } from "lucide-react";
 import Image from "next/image";
@@ -18,6 +20,11 @@ import { dictionaries } from "@/i18n/config";
 import { getRequestLocale } from "@/i18n/server";
 import { allowsLocalPreview } from "@/lib/local-preview";
 import { requireAllowedUser } from "@/auth/server";
+import {
+  reopenRunFromHomeAction,
+  startRunAction,
+} from "@/app/run/actions";
+import { createRunManager } from "@/runs/run-manager";
 
 const routineStyles = [
   { iconTone: "sky", shape: "islandSky", art: "weekly" },
@@ -34,7 +41,12 @@ export default async function HomePage() {
 
   const locale = await getRequestLocale();
   const copy = dictionaries[locale];
-  const content = await createContentCatalog(getDatabase()).list();
+  const database = getDatabase();
+  const [content, runState] = await Promise.all([
+    createContentCatalog(database).list(),
+    createRunManager(database).getHouseholdState(),
+  ]);
+  const openRun = runState.openRun;
 
   return (
     <main className="appCanvas">
@@ -64,15 +76,30 @@ export default async function HomePage() {
 
         <section className="welcome" aria-labelledby="home-title">
           <div className="welcomeCopy">
-            <h1 id="home-title">{copy.greeting}</h1>
-            <p>{copy.instruction}</p>
-            <Button className="startButton" disabled aria-describedby="phase-note">
-              <LockKeyhole aria-hidden="true" strokeWidth={2.2} />
-              {copy.startCleaning}
-            </Button>
-            <p className="availabilityNote" id="phase-note">
-              {copy.phaseNote}
+            <h1 id="home-title">
+              {openRun ? copy.cleaningInProgress : copy.greeting}
+            </h1>
+            <p>
+              {openRun
+                ? copy.tasksDone.replace("{count}", String(openRun.tickedCount))
+                : copy.instruction}
             </p>
+            {openRun ? (
+              <Link className="startButton continueRunLink" href={`/run/${openRun.id}`}>
+                <Play aria-hidden="true" fill="currentColor" strokeWidth={2.2} />
+                {copy.continueCleaning}
+              </Link>
+            ) : (
+              <Button
+                className="startButton"
+                type="submit"
+                form="start-run-form"
+                disabled={content.routines.length === 0}
+              >
+                <Play aria-hidden="true" fill="currentColor" strokeWidth={2.2} />
+                {copy.startCleaning}
+              </Button>
+            )}
             <span className="coralDot" aria-hidden="true" />
           </div>
           <div className="careIsland" aria-hidden="true">
@@ -91,33 +118,63 @@ export default async function HomePage() {
           <div className="sectionHeading">
             <h2 id="routine-title">{copy.routines}</h2>
           </div>
-          <ul className="routineList">
-            {content.routines.map((routine, index) => {
-              const style = routineStyles[index % routineStyles.length];
+          {runState.resumableRun ? (
+            <div className="resumableRunIsland">
+              <span className="resumableRunIcon" aria-hidden="true">
+                <CheckCircle2 strokeWidth={2} />
+              </span>
+              <span>
+                <strong>{copy.lastRun}</strong>
+                <small>
+                  {copy.tasksDone.replace(
+                    "{count}",
+                    String(runState.resumableRun.tickedCount),
+                  )}
+                </small>
+              </span>
+              <form action={reopenRunFromHomeAction}>
+                <input type="hidden" name="runId" value={runState.resumableRun.id} />
+                <button type="submit">
+                  <RotateCcw aria-hidden="true" />
+                  {copy.reopenRun}
+                </button>
+              </form>
+            </div>
+          ) : null}
+          <form id="start-run-form" action={startRunAction}>
+            <ul className="routineList">
+              {content.routines.map((routine, index) => {
+                const style = routineStyles[index % routineStyles.length];
 
-              return (
-                <li key={routine.id}>
-                  <button
-                    className={`routineIsland ${style.shape}`}
-                    type="button"
-                    disabled
-                    aria-describedby="phase-note"
-                  >
-                    <span
-                      className={`routineIcon ${style.iconTone}`}
-                      aria-hidden="true"
+                return (
+                  <li key={routine.id}>
+                    <label
+                      className={`routineIsland ${style.shape} ${openRun ? "inactive" : ""}`}
                     >
-                      <CalendarDays strokeWidth={2} />
-                    </span>
-                    <span>{routine.name}</span>
-                    <span className="islandLinework" aria-hidden="true">
-                      <RoutineArt variant={style.art} />
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+                      <input
+                        className="srOnly"
+                        type="radio"
+                        name="routineId"
+                        value={routine.id}
+                        defaultChecked={index === 0}
+                        disabled={Boolean(openRun)}
+                      />
+                      <span
+                        className={`routineIcon ${style.iconTone}`}
+                        aria-hidden="true"
+                      >
+                        <CalendarDays strokeWidth={2} />
+                      </span>
+                      <span>{routine.name}</span>
+                      <span className="islandLinework" aria-hidden="true">
+                        <RoutineArt variant={style.art} />
+                      </span>
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+          </form>
           {content.routines.length === 0 ? (
             <div className="homeEmptyState">
               <p>{copy.noHomeRoutines}</p>
