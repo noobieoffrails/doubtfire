@@ -23,6 +23,8 @@ Confirm the iPhone repeat sign-in experience after Clerk's seven-day session lif
 
 Phase 2 provides authenticated content management. Use Settings to add, edit, move, and archive Routines, Rooms, and Tasks. Groups are optional labels on Tasks. Do not add real household content to the repository.
 
+The 2026-08-10 browser check covered create, edit, Task move, and archive flows with invented content. The phone check used a 390 × 844 viewport. The tablet check used a 1024 px viewport and confirmed that the two-column forms fit without horizontal overflow. The test records were removed from the local database after the check. The explicit local-preview flag was active for this UI check. Outside that preview, the Settings route and each server action require the allowed Clerk user.
+
 ## Product constraints
 
 - This is a two-person app with one shared Clerk account. Do not add a users table or per-person attribution.

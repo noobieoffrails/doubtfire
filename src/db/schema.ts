@@ -37,6 +37,9 @@ export const routines = pgTable(
       "routine_does_not_include_itself",
       sql`${table.includesRoutineId} is null or ${table.includesRoutineId} <> ${table.id}`,
     ),
+    uniqueIndex("routine_active_name_unique_idx")
+      .on(sql`lower(${table.name})`)
+      .where(sql`${table.archivedAt} is null`),
     index("routine_sort_order_idx").on(table.sortOrder),
   ],
 );
@@ -49,7 +52,12 @@ export const rooms = pgTable(
     sortOrder: integer("sort_order").notNull(),
     ...timestamps,
   },
-  (table) => [index("room_sort_order_idx").on(table.sortOrder)],
+  (table) => [
+    uniqueIndex("room_active_name_unique_idx")
+      .on(sql`lower(${table.name})`)
+      .where(sql`${table.archivedAt} is null`),
+    index("room_sort_order_idx").on(table.sortOrder),
+  ],
 );
 
 export const tasks = pgTable(

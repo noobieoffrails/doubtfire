@@ -150,14 +150,16 @@ async function assertActiveTaskTargets(
       .select({ id: rooms.id })
       .from(rooms)
       .where(and(eq(rooms.id, input.roomId), isNull(rooms.archivedAt)))
-      .limit(1),
+      .limit(1)
+      .for("update"),
     database
       .select({ id: routines.id })
       .from(routines)
       .where(
         and(eq(routines.id, input.routineId), isNull(routines.archivedAt)),
       )
-      .limit(1),
+      .limit(1)
+      .for("update"),
   ]);
 
   if (!room || !routine) {
@@ -182,7 +184,8 @@ async function assertActiveIncludedRoutine(
         isNull(routines.archivedAt),
       ),
     )
-    .limit(1);
+    .limit(1)
+    .for("update");
 
   if (!routine) {
     throw new Error("Choose an active Routine to include.");
@@ -195,24 +198,26 @@ export function createContentCatalog(
   return {
     async createRoutine(input: CreateRoutineInput) {
       const normalizedInput = normalizeRoutineInput(input);
-      await assertRoutineNameAvailable(database, normalizedInput.name);
-      await assertActiveIncludedRoutine(
-        database,
-        normalizedInput.includesRoutineId,
-      );
-      const [lastRoutine] = await database
-        .select({ sortOrder: max(routines.sortOrder) })
-        .from(routines);
+      return database.transaction(async (transaction) => {
+        await assertRoutineNameAvailable(transaction, normalizedInput.name);
+        await assertActiveIncludedRoutine(
+          transaction,
+          normalizedInput.includesRoutineId,
+        );
+        const [lastRoutine] = await transaction
+          .select({ sortOrder: max(routines.sortOrder) })
+          .from(routines);
 
-      const [routine] = await database
-        .insert(routines)
-        .values({
-          ...normalizedInput,
-          sortOrder: (lastRoutine.sortOrder ?? 0) + sortOrderGap,
-        })
-        .returning();
+        const [routine] = await transaction
+          .insert(routines)
+          .values({
+            ...normalizedInput,
+            sortOrder: (lastRoutine.sortOrder ?? 0) + sortOrderGap,
+          })
+          .returning();
 
-      return routine;
+        return routine;
+      });
     },
 
     async createRoom(input: CreateRoomInput) {
@@ -234,41 +239,52 @@ export function createContentCatalog(
 
     async createTask(input: CreateTaskInput) {
       const normalizedInput = normalizeTaskInput(input);
-      await assertActiveTaskTargets(database, normalizedInput);
-      const [lastTask] = await database
-        .select({ sortOrder: max(tasks.sortOrder) })
-        .from(tasks)
-        .where(eq(tasks.roomId, normalizedInput.roomId));
-      const [task] = await database
-        .insert(tasks)
-        .values({
-          ...normalizedInput,
-          sortOrder: (lastTask.sortOrder ?? 0) + sortOrderGap,
-        })
-        .returning();
+      return database.transaction(async (transaction) => {
+        await assertActiveTaskTargets(transaction, normalizedInput);
+        const [lastTask] = await transaction
+          .select({ sortOrder: max(tasks.sortOrder) })
+          .from(tasks)
+          .where(eq(tasks.roomId, normalizedInput.roomId));
+        const [task] = await transaction
+          .insert(tasks)
+          .values({
+            ...normalizedInput,
+            sortOrder: (lastTask.sortOrder ?? 0) + sortOrderGap,
+          })
+          .returning();
 
-      return task;
+        return task;
+      });
     },
 
     async updateRoutine(id: string, input: UpdateRoutineInput) {
       const normalizedInput = normalizeRoutineInput(input);
-      await assertRoutineNameAvailable(database, normalizedInput.name, id);
-      await assertActiveIncludedRoutine(
-        database,
-        normalizedInput.includesRoutineId,
-      );
-      await assertRoutineIncludesNoCycle(
-        database,
-        id,
-        normalizedInput.includesRoutineId,
-      );
-      const [routine] = await database
-        .update(routines)
-        .set(normalizedInput)
-        .where(eq(routines.id, id))
-        .returning();
+      return database.transaction(
+        async (transaction) => {
+          await assertRoutineNameAvailable(
+            transaction,
+            normalizedInput.name,
+            id,
+          );
+          await assertActiveIncludedRoutine(
+            transaction,
+            normalizedInput.includesRoutineId,
+          );
+          await assertRoutineIncludesNoCycle(
+            transaction,
+            id,
+            normalizedInput.includesRoutineId,
+          );
+          const [routine] = await transaction
+            .update(routines)
+            .set(normalizedInput)
+            .where(eq(routines.id, id))
+            .returning();
 
-      return routine;
+          return routine;
+        },
+        { isolationLevel: "serializable" },
+      );
     },
 
     async updateRoom(id: string, input: UpdateRoomInput) {
@@ -285,29 +301,31 @@ export function createContentCatalog(
 
     async updateTask(id: string, input: UpdateTaskInput) {
       const normalizedInput = normalizeTaskInput(input);
-      await assertActiveTaskTargets(database, normalizedInput);
-      const [currentTask] = await database
-        .select({ roomId: tasks.roomId, sortOrder: tasks.sortOrder })
-        .from(tasks)
-        .where(eq(tasks.id, id))
-        .limit(1);
-      let sortOrder = currentTask?.sortOrder;
-
-      if (currentTask && currentTask.roomId !== normalizedInput.roomId) {
-        const [lastTask] = await database
-          .select({ sortOrder: max(tasks.sortOrder) })
+      return database.transaction(async (transaction) => {
+        await assertActiveTaskTargets(transaction, normalizedInput);
+        const [currentTask] = await transaction
+          .select({ roomId: tasks.roomId, sortOrder: tasks.sortOrder })
           .from(tasks)
-          .where(eq(tasks.roomId, normalizedInput.roomId));
-        sortOrder = (lastTask.sortOrder ?? 0) + sortOrderGap;
-      }
+          .where(eq(tasks.id, id))
+          .limit(1);
+        let sortOrder = currentTask?.sortOrder;
 
-      const [task] = await database
-        .update(tasks)
-        .set({ ...normalizedInput, sortOrder })
-        .where(eq(tasks.id, id))
-        .returning();
+        if (currentTask && currentTask.roomId !== normalizedInput.roomId) {
+          const [lastTask] = await transaction
+            .select({ sortOrder: max(tasks.sortOrder) })
+            .from(tasks)
+            .where(eq(tasks.roomId, normalizedInput.roomId));
+          sortOrder = (lastTask.sortOrder ?? 0) + sortOrderGap;
+        }
 
-      return task;
+        const [task] = await transaction
+          .update(tasks)
+          .set({ ...normalizedInput, sortOrder })
+          .where(eq(tasks.id, id))
+          .returning();
+
+        return task;
+      });
     },
 
     async archiveTask(id: string) {

@@ -1,0 +1,2 @@
+CREATE UNIQUE INDEX "room_active_name_unique_idx" ON "room" USING btree (lower("name")) WHERE "room"."archived_at" is null;--> statement-breakpoint
+CREATE UNIQUE INDEX "routine_active_name_unique_idx" ON "routine" USING btree (lower("name")) WHERE "routine"."archived_at" is null;

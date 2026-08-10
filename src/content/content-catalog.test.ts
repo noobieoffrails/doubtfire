@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres, { type Sql } from "postgres";
@@ -21,17 +21,24 @@ describeWithPostgres("content catalog", () => {
       throw new Error("TEST_DATABASE_URL must select a database ending in _test.");
     }
 
-    sql = postgres(testDatabaseUrl!, { max: 1 });
+    sql = postgres(testDatabaseUrl!, { max: 2 });
     database = drizzle(sql, { schema });
     await sql.unsafe("drop schema public cascade; create schema public;");
-    const migration = await readFile(
-      new URL("../../drizzle/0000_initial_schema.sql", import.meta.url),
-      "utf8",
-    );
+    const migrationsDirectory = new URL("../../drizzle/", import.meta.url);
+    const migrationFiles = (await readdir(migrationsDirectory))
+      .filter((fileName) => fileName.endsWith(".sql"))
+      .sort();
 
-    for (const statement of migration.split("--> statement-breakpoint")) {
-      if (statement.trim()) {
-        await sql.unsafe(statement);
+    for (const migrationFile of migrationFiles) {
+      const migration = await readFile(
+        new URL(migrationFile, migrationsDirectory),
+        "utf8",
+      );
+
+      for (const statement of migration.split("--> statement-breakpoint")) {
+        if (statement.trim()) {
+          await sql.unsafe(statement);
+        }
       }
     }
   });
@@ -347,6 +354,56 @@ describeWithPostgres("content catalog", () => {
     await expect(catalog.createRoom({ name: "KITCHEN" })).rejects.toThrow(
       "An active Room already has this name.",
     );
+  });
+
+  it("refuses concurrent duplicate Routine names", async () => {
+    const catalog = createContentCatalog(database);
+
+    const results = await Promise.allSettled([
+      catalog.createRoutine({
+        cadenceDays: 7,
+        includesRoutineId: null,
+        name: "Weekly",
+      }),
+      catalog.createRoutine({
+        cadenceDays: 14,
+        includesRoutineId: null,
+        name: "weekly",
+      }),
+    ]);
+
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
+  });
+
+  it("refuses a Routine Includes cycle created concurrently", async () => {
+    const catalog = createContentCatalog(database);
+    const weekly = await catalog.createRoutine({
+      cadenceDays: 7,
+      includesRoutineId: null,
+      name: "Weekly",
+    });
+    const fortnightly = await catalog.createRoutine({
+      cadenceDays: 14,
+      includesRoutineId: null,
+      name: "Fortnightly",
+    });
+
+    const results = await Promise.allSettled([
+      catalog.updateRoutine(weekly.id, {
+        cadenceDays: 7,
+        includesRoutineId: fortnightly.id,
+        name: "Weekly",
+      }),
+      catalog.updateRoutine(fortnightly.id, {
+        cadenceDays: 14,
+        includesRoutineId: weekly.id,
+        name: "Fortnightly",
+      }),
+    ]);
+
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
   });
 
   it("refuses to place a Task in archived content", async () => {

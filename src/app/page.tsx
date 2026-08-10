@@ -20,9 +20,9 @@ import { allowsLocalPreview } from "@/lib/local-preview";
 import { requireAllowedUser } from "@/auth/server";
 
 const routineStyles = [
-  { iconTone: "sky", shape: "islandWeekly", art: "weekly" },
-  { iconTone: "mint", shape: "islandFortnightly", art: "fortnightly" },
-  { iconTone: "lilac", shape: "islandQuarterly", art: "quarterly" },
+  { iconTone: "sky", shape: "islandSky", art: "weekly" },
+  { iconTone: "mint", shape: "islandMint", art: "fortnightly" },
+  { iconTone: "lilac", shape: "islandLilac", art: "quarterly" },
 ] as const;
 
 export default async function HomePage() {
