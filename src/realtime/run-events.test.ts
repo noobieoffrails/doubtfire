@@ -12,6 +12,25 @@ import { listenForRunChanges } from "./run-events";
 const testDatabaseUrl = process.env.TEST_DATABASE_URL;
 const describeWithPostgres = testDatabaseUrl ? describe : describe.skip;
 
+async function observeRunChange<Result>(
+  sql: Sql,
+  operation: () => Promise<Result>,
+): Promise<{ change: { runId: string }; result: Result }> {
+  let announceRunChange: (change: { runId: string }) => void = () => undefined;
+  const runChanged = new Promise<{ runId: string }>((resolve) => {
+    announceRunChange = resolve;
+  });
+  const stopListening = await listenForRunChanges(sql, announceRunChange);
+
+  try {
+    const result = await operation();
+    const change = await runChanged;
+    return { change, result };
+  } finally {
+    await stopListening();
+  }
+}
+
 describeWithPostgres("Run change stream", () => {
   let sql: Sql;
   let database: ReturnType<typeof drizzle<typeof schema>>;
@@ -72,19 +91,11 @@ describeWithPostgres("Run change stream", () => {
       now: () => new Date("2026-08-10T09:00:00.000Z"),
     });
     const run = await manager.start(routine.id);
-    let announceRunChange: (change: { runId: string }) => void = () => undefined;
-    const runChanged = new Promise<{ runId: string }>((resolve) => {
-      announceRunChange = resolve;
-    });
-    const stopListening = await listenForRunChanges(sql, announceRunChange);
+    const { change } = await observeRunChange(sql, () =>
+      manager.setTick(run.id, task.id, true),
+    );
 
-    try {
-      await manager.setTick(run.id, task.id, true);
-
-      await expect(runChanged).resolves.toEqual({ runId: run.id });
-    } finally {
-      await stopListening();
-    }
+    expect(change).toEqual({ runId: run.id });
   });
 
   it("announces when a Tick is withdrawn", async () => {
@@ -107,19 +118,11 @@ describeWithPostgres("Run change stream", () => {
     });
     const run = await manager.start(routine.id);
     await manager.setTick(run.id, task.id, true);
-    let announceRunChange: (change: { runId: string }) => void = () => undefined;
-    const runChanged = new Promise<{ runId: string }>((resolve) => {
-      announceRunChange = resolve;
-    });
-    const stopListening = await listenForRunChanges(sql, announceRunChange);
+    const { change } = await observeRunChange(sql, () =>
+      manager.setTick(run.id, task.id, false),
+    );
 
-    try {
-      await manager.setTick(run.id, task.id, false);
-
-      await expect(runChanged).resolves.toEqual({ runId: run.id });
-    } finally {
-      await stopListening();
-    }
+    expect(change).toEqual({ runId: run.id });
   });
 
   it("announces when a Run opens", async () => {
@@ -129,21 +132,13 @@ describeWithPostgres("Run change stream", () => {
       includesRoutineId: null,
       name: "Weekly",
     });
-    let announceRunChange: (change: { runId: string }) => void = () => undefined;
-    const runChanged = new Promise<{ runId: string }>((resolve) => {
-      announceRunChange = resolve;
-    });
-    const stopListening = await listenForRunChanges(sql, announceRunChange);
-
-    try {
-      const run = await createRunManager(database, {
+    const { change, result: run } = await observeRunChange(sql, () =>
+      createRunManager(database, {
         now: () => new Date("2026-08-10T09:00:00.000Z"),
-      }).start(routine.id);
+      }).start(routine.id),
+    );
 
-      await expect(runChanged).resolves.toEqual({ runId: run.id });
-    } finally {
-      await stopListening();
-    }
+    expect(change).toEqual({ runId: run.id });
   });
 
   it("announces when a Run closes", async () => {
@@ -157,18 +152,8 @@ describeWithPostgres("Run change stream", () => {
       now: () => new Date("2026-08-10T09:00:00.000Z"),
     });
     const run = await manager.start(routine.id);
-    let announceRunChange: (change: { runId: string }) => void = () => undefined;
-    const runChanged = new Promise<{ runId: string }>((resolve) => {
-      announceRunChange = resolve;
-    });
-    const stopListening = await listenForRunChanges(sql, announceRunChange);
+    const { change } = await observeRunChange(sql, () => manager.close(run.id));
 
-    try {
-      await manager.close(run.id);
-
-      await expect(runChanged).resolves.toEqual({ runId: run.id });
-    } finally {
-      await stopListening();
-    }
+    expect(change).toEqual({ runId: run.id });
   });
 });

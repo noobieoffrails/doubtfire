@@ -49,12 +49,6 @@ export async function setTickAction(input: {
   return run;
 }
 
-export async function getRunAction(runIdValue: string): Promise<RunView> {
-  await authorizeRunAction();
-  const runId = idSchema.parse(runIdValue);
-  return createRunManager(getDatabase()).get(runId);
-}
-
 export async function closeRunAction(runIdValue: string): Promise<RunView> {
   await authorizeRunAction();
   const runId = idSchema.parse(runIdValue);
