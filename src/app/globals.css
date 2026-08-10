@@ -352,6 +352,11 @@ textarea:focus-visible {
   transform: translateY(-2px);
 }
 
+.routineIsland:has(input:focus-visible) {
+  outline: 3px solid var(--cobalt);
+  outline-offset: 4px;
+}
+
 .routineIsland.inactive {
   cursor: default;
   opacity: 0.72;
@@ -465,7 +470,7 @@ textarea:focus-visible {
 
 .resumableRunIsland button {
   display: inline-flex;
-  min-height: 44px;
+  min-height: 48px;
   align-items: center;
   gap: 7px;
   border: 0;
@@ -484,11 +489,16 @@ textarea:focus-visible {
 }
 
 .runCanvas {
+  display: grid;
   min-height: 100svh;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
   background: var(--ice);
 }
 
 .runSurface {
+  width: 100%;
+  min-width: 0;
   min-height: 100svh;
   background: var(--white);
 }
@@ -505,6 +515,10 @@ textarea:focus-visible {
   padding: max(14px, env(safe-area-inset-top)) 20px 10px;
   background: rgb(255 255 255 / 96%);
   backdrop-filter: blur(14px);
+}
+
+.runHeader > * {
+  min-width: 0;
 }
 
 .runHeader .iconButton {
@@ -530,7 +544,9 @@ textarea:focus-visible {
 
 .runOverview,
 .roomTaskSection {
-  width: min(100%, 840px);
+  width: 100%;
+  min-width: 0;
+  max-width: 840px;
   margin: 0 auto;
   padding: 28px 20px max(48px, env(safe-area-inset-bottom));
 }
@@ -544,6 +560,7 @@ textarea:focus-visible {
   font-weight: 780;
   letter-spacing: -0.04em;
   line-height: 0.98;
+  overflow-wrap: anywhere;
   text-wrap: balance;
 }
 
@@ -556,6 +573,7 @@ textarea:focus-visible {
 
 .runRoomGrid {
   display: grid;
+  min-width: 0;
   gap: 12px;
   margin: 30px 0 0;
   padding: 0;
@@ -565,6 +583,7 @@ textarea:focus-visible {
 .runRoomIsland {
   display: grid;
   width: 100%;
+  min-width: 0;
   min-height: 112px;
   grid-template-columns: minmax(0, 1fr) auto;
   align-content: center;
@@ -584,6 +603,8 @@ textarea:focus-visible {
 }
 
 .runRoomIsland > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-size: 1.35rem;
   font-weight: 770;
   letter-spacing: -0.025em;
@@ -855,7 +876,7 @@ textarea:focus-visible {
 
 .undoToast button {
   display: inline-flex;
-  min-height: 44px;
+  min-height: 48px;
   align-items: center;
   gap: 7px;
   border: 0;
@@ -1685,8 +1706,7 @@ details[open] > summary .summaryChevron {
   }
 
   .runCanvas {
-    display: grid;
-    place-items: center;
+    justify-items: center;
     padding: 28px;
     background:
       radial-gradient(circle at 8% 8%, rgb(158 216 255 / 28%), transparent 28rem),
@@ -1695,7 +1715,8 @@ details[open] > summary .summaryChevron {
   }
 
   .runSurface {
-    width: min(100%, 1020px);
+    width: 100%;
+    max-width: 1020px;
     min-height: min(820px, calc(100svh - 56px));
     overflow: clip;
     border-radius: 42px;

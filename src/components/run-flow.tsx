@@ -10,7 +10,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 
 import {
   closeRunAction,
@@ -62,12 +62,43 @@ function withTick(
   };
 }
 
+function RunTaskControl({
+  onChange,
+  roomName,
+  task,
+}: {
+  onChange: (taskId: string, ticked: boolean) => void;
+  roomName?: string;
+  task: RunView["rooms"][number]["tasks"][number];
+}) {
+  return (
+    <button
+      className={roomName ? undefined : "runTaskButton"}
+      type="button"
+      aria-pressed={task.ticked}
+      onClick={() => onChange(task.id, !task.ticked)}
+    >
+      <span className="taskCheck" aria-hidden="true">
+        {task.ticked ? <Check strokeWidth={3} /> : null}
+      </span>
+      <span className={roomName ? undefined : "runTaskCopy"}>
+        {roomName ? <small>{roomName}</small> : null}
+        {!roomName && task.groupLabel ? <small>{task.groupLabel}</small> : null}
+        <strong>{task.text}</strong>
+        {!roomName && task.note ? <span>{task.note}</span> : null}
+      </span>
+    </button>
+  );
+}
+
 export function RunFlow({ initialRun, copy }: { initialRun: RunView; copy: RunCopy }) {
   const [run, setRun] = useState(initialRun);
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [undoVisible, setUndoVisible] = useState(false);
   const [isClosing, startClosing] = useTransition();
+  const taskMutationQueues = useRef(new Map<string, Promise<void>>());
+  const taskMutationVersions = useRef(new Map<string, number>());
   const activeRoom = run.rooms.find((room) => room.id === activeRoomId) ?? null;
 
   useEffect(() => {
@@ -79,18 +110,39 @@ export function RunFlow({ initialRun, copy }: { initialRun: RunView; copy: RunCo
     return () => window.clearTimeout(timer);
   }, [undoVisible]);
 
-  async function changeTick(taskId: string, ticked: boolean) {
-    const previousRun = run;
+  function changeTick(taskId: string, ticked: boolean) {
+    const version = (taskMutationVersions.current.get(taskId) ?? 0) + 1;
+    taskMutationVersions.current.set(taskId, version);
     setError(null);
     setRun((currentRun) => withTick(currentRun, taskId, ticked));
 
-    try {
-      const savedRun = await setTickAction({ runId: run.id, taskId, ticked });
-      setRun(savedRun);
-    } catch {
-      setRun(previousRun);
-      setError(copy.runChangeError);
-    }
+    const previousRequest = taskMutationQueues.current.get(taskId) ?? Promise.resolve();
+    const request = previousRequest
+      .catch(() => undefined)
+      .then(async () => {
+        try {
+          const savedRun = await setTickAction({ runId: run.id, taskId, ticked });
+          const savedTask = savedRun.rooms
+            .flatMap((room) => room.tasks)
+            .find((task) => task.id === taskId);
+
+          if (savedTask && taskMutationVersions.current.get(taskId) === version) {
+            setRun((currentRun) => withTick(currentRun, taskId, savedTask.ticked));
+          }
+        } catch {
+          if (taskMutationVersions.current.get(taskId) === version) {
+            setRun((currentRun) => withTick(currentRun, taskId, !ticked));
+            setError(copy.runChangeError);
+          }
+        }
+      })
+      .finally(() => {
+        if (taskMutationQueues.current.get(taskId) === request) {
+          taskMutationQueues.current.delete(taskId);
+        }
+      });
+
+    taskMutationQueues.current.set(taskId, request);
   }
 
   function closeRun() {
@@ -174,21 +226,7 @@ export function RunFlow({ initialRun, copy }: { initialRun: RunView; copy: RunCo
             <ul className="runTaskList" aria-label={copy.taskList}>
               {activeRoom.tasks.map((task) => (
                 <li key={task.id}>
-                  <button
-                    className="runTaskButton"
-                    type="button"
-                    aria-pressed={task.ticked}
-                    onClick={() => changeTick(task.id, !task.ticked)}
-                  >
-                    <span className="taskCheck" aria-hidden="true">
-                      {task.ticked ? <Check strokeWidth={3} /> : null}
-                    </span>
-                    <span className="runTaskCopy">
-                      {task.groupLabel ? <small>{task.groupLabel}</small> : null}
-                      <strong>{task.text}</strong>
-                      {task.note ? <span>{task.note}</span> : null}
-                    </span>
-                  </button>
+                  <RunTaskControl task={task} onChange={changeTick} />
                 </li>
               ))}
             </ul>
@@ -256,19 +294,11 @@ export function RunFlow({ initialRun, copy }: { initialRun: RunView; copy: RunCo
                 {run.rooms.flatMap((room) =>
                   room.tasks.map((task) => (
                     <li key={task.id}>
-                      <button
-                        type="button"
-                        aria-pressed={task.ticked}
-                        onClick={() => changeTick(task.id, !task.ticked)}
-                      >
-                        <span className="taskCheck" aria-hidden="true">
-                          {task.ticked ? <Check strokeWidth={3} /> : null}
-                        </span>
-                        <span>
-                          <small>{room.name}</small>
-                          <strong>{task.text}</strong>
-                        </span>
-                      </button>
+                      <RunTaskControl
+                        task={task}
+                        roomName={room.name}
+                        onChange={changeTick}
+                      />
                     </li>
                   )),
                 )}
