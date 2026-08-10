@@ -6,7 +6,6 @@ import {
   gte,
   isNotNull,
   isNull,
-  lt,
   sql,
 } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
@@ -133,25 +132,10 @@ async function getRolloverBoundary(
   timeZone: string,
 ): Promise<Date> {
   const result = await database.execute(sql`
-    select case
-      when ${at.toISOString()}::timestamptz at time zone ${timeZone}
-        < date_trunc(
-            'day',
-            ${at.toISOString()}::timestamptz at time zone ${timeZone}
-          ) + interval '4 hours'
-      then (
-        date_trunc(
-          'day',
-          ${at.toISOString()}::timestamptz at time zone ${timeZone}
-        ) - interval '1 day' + interval '4 hours'
-      ) at time zone ${timeZone}
-      else (
-        date_trunc(
-          'day',
-          ${at.toISOString()}::timestamptz at time zone ${timeZone}
-        ) + interval '4 hours'
-      ) at time zone ${timeZone}
-    end as boundary
+    select "run_rollover_boundary"(
+      ${at.toISOString()}::timestamptz,
+      ${timeZone}
+    ) as boundary
   `);
   const boundary = result[0]?.boundary;
 
@@ -160,6 +144,22 @@ async function getRolloverBoundary(
   }
 
   return boundary instanceof Date ? boundary : new Date(String(boundary));
+}
+
+async function closeStaleRuns(
+  database: RunDatabase,
+  at: Date,
+  timeZone: string,
+): Promise<number> {
+  const closedRuns = await database.execute(sql`
+    select "run_id"
+    from "close_stale_runs"(
+      ${at.toISOString()}::timestamptz,
+      ${timeZone}
+    )
+  `);
+
+  return closedRuns.length;
 }
 
 export function createRunManager(
@@ -172,25 +172,12 @@ export function createRunManager(
   return {
     async start(routineId: string): Promise<RunView> {
       const startedAt = now();
-      const rolloverBoundary = await getRolloverBoundary(
-        database,
-        startedAt,
-        timeZone,
-      );
 
       return database.transaction(async (transaction) => {
         await transaction.execute(
           sql`select pg_advisory_xact_lock(hashtext('doubtfire-open-run'))`,
         );
-        await transaction
-          .update(runs)
-          .set({
-            closedAt: rolloverBoundary,
-            closedByRollover: true,
-          })
-          .where(
-            and(isNull(runs.closedAt), lt(runs.startedAt, rolloverBoundary)),
-          );
+        await closeStaleRuns(transaction, startedAt, timeZone);
         const [openRun] = await transaction
           .select({ id: runs.id })
           .from(runs)
@@ -319,44 +306,44 @@ export function createRunManager(
         currentTime,
         timeZone,
       );
-      const [reopenedRun] = await database
-        .update(runs)
-        .set({ closedAt: null, closedByRollover: false })
-        .where(
-          and(
-            eq(runs.id, runId),
-            isNotNull(runs.closedAt),
-            eq(runs.closedByRollover, false),
-            gte(runs.startedAt, rolloverBoundary),
-          ),
-        )
-        .returning({ id: runs.id });
 
-      if (!reopenedRun) {
-        throw new Error("This Run can no longer be reopened.");
-      }
+      return database.transaction(async (transaction) => {
+        await transaction.execute(
+          sql`select pg_advisory_xact_lock(hashtext('doubtfire-open-run'))`,
+        );
+        const [openRun] = await transaction
+          .select({ id: runs.id })
+          .from(runs)
+          .where(isNull(runs.closedAt))
+          .limit(1);
 
-      return getRunView(database, reopenedRun.id);
+        if (openRun) {
+          throw new Error("A Run is already open.");
+        }
+
+        const [reopenedRun] = await transaction
+          .update(runs)
+          .set({ closedAt: null, closedByRollover: false })
+          .where(
+            and(
+              eq(runs.id, runId),
+              isNotNull(runs.closedAt),
+              eq(runs.closedByRollover, false),
+              gte(runs.startedAt, rolloverBoundary),
+            ),
+          )
+          .returning({ id: runs.id });
+
+        if (!reopenedRun) {
+          throw new Error("This Run can no longer be reopened.");
+        }
+
+        return getRunView(transaction, reopenedRun.id);
+      });
     },
 
     async closeAtRollover(): Promise<number> {
-      const rolloverBoundary = await getRolloverBoundary(
-        database,
-        now(),
-        timeZone,
-      );
-      const closedRuns = await database
-        .update(runs)
-        .set({
-          closedAt: rolloverBoundary,
-          closedByRollover: true,
-        })
-        .where(
-          and(isNull(runs.closedAt), lt(runs.startedAt, rolloverBoundary)),
-        )
-        .returning({ id: runs.id });
-
-      return closedRuns.length;
+      return closeStaleRuns(database, now(), timeZone);
     },
 
     async get(runId: string): Promise<RunView> {
@@ -367,20 +354,13 @@ export function createRunManager(
       openRun: RunView | null;
       resumableRun: RunView | null;
     }> {
+      const currentTime = now();
       const rolloverBoundary = await getRolloverBoundary(
         database,
-        now(),
+        currentTime,
         timeZone,
       );
-      await database
-        .update(runs)
-        .set({
-          closedAt: rolloverBoundary,
-          closedByRollover: true,
-        })
-        .where(
-          and(isNull(runs.closedAt), lt(runs.startedAt, rolloverBoundary)),
-        );
+      await closeStaleRuns(database, currentTime, timeZone);
       const [openRun] = await database
         .select({ id: runs.id })
         .from(runs)

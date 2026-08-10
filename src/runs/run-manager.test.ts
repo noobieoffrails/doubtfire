@@ -279,6 +279,25 @@ describeWithPostgres("Run manager", () => {
     );
   });
 
+  it("does not reopen an older Run while another Run is open", async () => {
+    const catalog = createContentCatalog(database);
+    const routine = await catalog.createRoutine({
+      cadenceDays: 7,
+      includesRoutineId: null,
+      name: "Weekly",
+    });
+    const manager = createRunManager(database, {
+      now: () => new Date("2026-08-10T09:00:00.000Z"),
+    });
+    const olderRun = await manager.start(routine.id);
+    await manager.close(olderRun.id);
+    await manager.start(routine.id);
+
+    await expect(manager.reopen(olderRun.id)).rejects.toThrow(
+      "A Run is already open.",
+    );
+  });
+
   it("closes stale Runs at 04:00 and carries un-Ticked Tasks forward", async () => {
     const catalog = createContentCatalog(database);
     const routine = await catalog.createRoutine({

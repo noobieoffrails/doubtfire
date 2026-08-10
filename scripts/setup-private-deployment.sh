@@ -187,8 +187,8 @@ finish() {
 # Make the total values agree with the stages.
 # ──────────────────────────────────────────────────────────────────────────
 
-TOTAL_STAGES=17
-TOTAL_MINUTES=61
+TOTAL_STAGES=18
+TOTAL_MINUTES=65
 ENV_FILE="${DOUBTFIRE_ENV_FILE:-.env.local}"
 
 action() {
@@ -407,6 +407,19 @@ action "Seal CLERK_SECRET_KEY from its three-dot menu."
 action "Review and deploy the staged changes. Wait for the health check to succeed."
 warn "Do not put production keys in .env.local or GitHub Actions."
 action "Open https://$APP_HOSTNAME and confirm that production sign-in works."
+
+stage "Railway Run rollover" 4
+say "Create the short scheduled service that closes Runs after the Helsinki 04:00 rollover."
+open_url "https://railway.com/dashboard"
+action "Open the Doubtfire project. Select + New, then GitHub Repo, then noobieoffrails/doubtfire."
+action "Name the new service doubtfire-rollover and keep main as its deployment branch."
+action "Open the new service Settings. Set the Railway Config File path to /railway.rollover.json."
+action "Select EU West. Do not add a public domain or TCP Proxy."
+action 'Open Variables. Add DATABASE_URL with the value ${{Postgres.DATABASE_URL}}. Use autocomplete if the database has another name.'
+action "Open Settings. Set Cron Schedule to: 0 1,2 * * *"
+note "Railway schedules in UTC. The two start times cover Helsinki daylight-saving changes. The command closes a Run only after local 04:00."
+action "Enable Wait for CI, then review and deploy the staged changes."
+action "Open the first deployment logs. Confirm that it ends with Closed 0 stale Run(s). or another absolute count."
 
 stage "GitHub protection" 2
 say "Require reviewed and verified changes for main."
