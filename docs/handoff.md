@@ -13,8 +13,7 @@ The repository owner accepted installation and sign-in from the iPhone home scre
 1. [`CONTEXT.md`](../CONTEXT.md) defines the domain language.
 2. [`docs/implementation-plan.md`](./implementation-plan.md) defines the stack and delivery phases.
 3. [`docs/adr`](./adr/) contains the settled decisions.
-4. [`fixtures/example-cleaning-list.md`](../fixtures/example-cleaning-list.md) defines the invented import format.
-5. [`docs/private-deployment.md`](./private-deployment.md) defines the access and deployment controls.
+4. [`docs/private-deployment.md`](./private-deployment.md) defines the access and deployment controls.
 
 ## Deployment follow-up
 
@@ -22,9 +21,7 @@ Confirm the iPhone repeat sign-in experience after Clerk's seven-day session lif
 
 ## Current product work
 
-Phase 2 implementation is complete. The Markdown parser and `pnpm seed [path-to-list.md]` command use the invented fixture and an isolated Postgres integration test. Do not add real household content to the repository.
-
-The real import is still pending. Run the command with the private list path. Resolve each ambiguous nested bullet, review the two-column source and proposed structure, and type `WRITE` only after the proposal is correct.
+Phase 2 provides authenticated content management. Use Settings to add, edit, move, and archive Routines, Rooms, and Tasks. Groups are optional labels on Tasks. Do not add real household content to the repository.
 
 ## Product constraints
 
@@ -38,9 +35,8 @@ The real import is still pending. Run the command with the private list path. Re
 
 ## Items that need the repository owner
 
-- Review the Phase 2 real-import diff before data is written.
 - Confirm the iPhone repeat sign-in experience after seven days.
-- Decide the Phase 5 CRUD scope after several weekends of real use.
+- Decide which advanced organization controls are useful after several weekends of real use.
 
 ## Credentials
 

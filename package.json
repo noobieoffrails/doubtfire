@@ -13,8 +13,7 @@
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio",
-    "seed": "node --experimental-strip-types scripts/seed.ts"
+    "db:studio": "drizzle-kit studio"
   },
   "engines": {
     "node": ">=22.0.0"

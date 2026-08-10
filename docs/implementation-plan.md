@@ -1,6 +1,6 @@
 # Implementation Plan
 
-**This repository is public and holds no real household content.** The Rooms and Tasks it ships are the invented ones in [`fixtures/example-cleaning-list.md`](../fixtures/example-cleaning-list.md). A real list is supplied at seed time from a path outside the repository and must never be committed, inlined into a test, or quoted in a comment.
+**This repository is public and holds no real household content.** Household Routines, Rooms, and Tasks are created through the authenticated Settings UI and stay in Postgres. They must never be committed, inlined into a test, or quoted in a comment.
 
 Read [CONTEXT.md](../CONTEXT.md) first — it defines Routine, Task, Room, Group, Cadence, Run, Tick, Due, Presented, Ignored and Archived, and lists the words to avoid. Use those terms in code, in UI copy and in commits. When a new domain term is settled during the build, add it there.
 
@@ -21,7 +21,7 @@ Four decisions are recorded in [docs/adr](./adr) and are settled. Each has a "do
 
 **UI language:** English by default, Finnish via a toggle stored in a cookie — per-device, and readable during SSR so there is no flash of the wrong language. A dictionary of ~100 strings, no i18n framework.
 
-This covers the app's own chrome only. **Task text is content, and the app never translates it** — it is stored and displayed exactly as the seeded list wrote it, in whatever language that was. The shipped example fixture is English; the household's own list is Finnish. The language toggle must not touch it.
+This covers the app's own chrome only. **Task text is content, and the app never translates it** — it is stored and displayed exactly as the household entered it. The language toggle must not touch it.
 
 ## Data model
 
@@ -54,24 +54,19 @@ A Task never Ticked is Due. A Run for Routine R presents every non-archived Task
 
 Next.js on Railway, Postgres provisioned, Drizzle with migrations, Clerk gating every route, manifest and icon set, and a deploy that installs to an iPhone home screen and looks like an app. The Clerk Hobby plan has a fixed seven-day session lifetime. Track the repeat sign-in check as a deployment follow-up. It does not block product work. Android tablet acceptance is deferred by the repository owner.
 
-### 2 — Import
+### 2 — Content management
 
-Build a parser and a seed command, not a one-off script:
+Build authenticated Settings forms before Runs. The household enters its real content directly in the app.
 
-```
-pnpm seed [path-to-list.md]     # defaults to fixtures/example-cleaning-list.md
-```
+- Routines: create, edit the name and Cadence, set `includes`, and archive.
+- Rooms: create, rename, and archive.
+- Tasks: create, edit text and Note, move between Rooms and Routines, set an optional Group label, and archive.
+- Add new content at the end of its current order. Advanced reordering can follow after real use shows where it is necessary.
+- Reject empty required text, duplicate active Routine or Room names, inactive references, and Routine `includes` cycles.
+- **Archiving a Routine re-points** any Routine that includes it at *its* target. Archive Fortnightly and Quarterly starts including Weekly directly.
+- Archive content instead of deleting it. Keep existing identity and history.
 
-The command asks the owner to resolve each ambiguous nested bullet. It then shows a two-column source and proposed-structure review. The review keeps each unrecognized non-empty source line and marks it as no database change. The command writes only after the owner types `WRITE`, and it refuses to write when the database already contains a Routine, Room, or Task.
-
-The format is documented by [`fixtures/example-cleaning-list.md`](../fixtures/example-cleaning-list.md), which is invented content exercising every structural case: explicit Cadences in days, cumulative tiers via an `Includes:` line, a tier with no `Includes:` (standalone), a whole-home Room, Group headings, Notes, and one three-deep nesting. Test the parser against that fixture.
-
-The real list is passed by path from outside the repository. Two things about it the parser cannot decide alone:
-
-- **Nested bullets serve three roles** — a Group heading whose children are Tasks, a Task with a Note, or a Task with a hint. Roughly a dozen bullets in the household's list are genuinely ambiguous.
-- **A tier may say "plus all of the above" and still not mean it.** At least one tier is deliberately standalone, because its tasks are big enough that they always get their own day. A prose line saying otherwise does not override that.
-
-So the deliverable of a real import is a **two-column diff** — source beside proposed structure — reviewed by the repository owner before anything is written to the database.
+Test the content-management interface with an isolated Postgres database. Verify the authenticated forms on phone and tablet-sized screens.
 
 ### 3 — Runs
 
@@ -94,16 +89,15 @@ Test the case the feature exists for: phone and tablet in the same Run, one Tick
 
 **The app is usable for real cleaning at the end of this phase.** Worth a few weekends of actual use before phase 5 — it will narrow what "full CRUD" needs to mean.
 
-### 5 — CRUD
+### 5 — Content organization
 
-The largest slab of UI in the app.
+Refine the Phase 2 management tools after real household use.
 
-- Tasks: add, edit text and note, move between Rooms and Routines, archive, reorder by drag.
-- Rooms and Groups: rename, reorder, archive.
-- Routines: create, rename, change cadence, change `includes`, archive.
-- **Archiving a Routine re-points** any Routine that includes it at *its* target — archive Fortnightly and Quarterly starts including Weekly directly. Otherwise a tier's Tasks vanish silently.
-- Moving a Task between Routines changes its cadence; its Tick history follows the Task.
-- If touch dragging proves unreliable in practice, fall back to move-up/move-down buttons.
+- Add Routine, Room, and Task reordering where creation order is not sufficient.
+- Add bulk Group rename or clearing if editing individual Task labels is too slow.
+- Add archived-content inspection or restore controls if the household needs them.
+- Moving a Task between Routines continues to change its Cadence while its Tick history follows the Task.
+- Prefer move-up and move-down controls when touch dragging is not reliable.
 
 ### 6 — Statistics
 
@@ -111,7 +105,7 @@ Its own tab, never surfaced elsewhere.
 
 - Per Task: done N times · ignored N times · last done · average real interval vs cadence.
 - Per Room: the same, rolled up.
-- Never done since seeding.
+- Never done since the Task was added.
 
 **Ignored** means a Task stayed Due for a full further cadence period without being Ticked — one missed cycle, counted once. It does *not* mean "shown in a Run and not Ticked", which would punish every Task in a room that simply was not reached that day.
 

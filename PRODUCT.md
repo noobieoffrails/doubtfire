@@ -55,8 +55,8 @@ Use Roborock, Oral-B, LARQ, and Woods Connect as visual references for color, at
 - `CONTEXT.md` contains the domain language.
 - `docs/implementation-plan.md` contains the delivery plan and stack.
 - `docs/adr/` contains the settled product and architecture decisions.
-- `fixtures/example-cleaning-list.md` contains invented public content for development and tests.
-- The repository has no approved logo, font system, or real household content.
+- The authenticated Settings UI is the only supported way to add household content.
+- The repository has no approved logo or real household content.
 - The user approved the visual reference set in Brand Commitments. The exact design tokens still need implementation checks.
 
 ## Product Principles
