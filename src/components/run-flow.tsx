@@ -10,14 +10,16 @@ import {
   RotateCcw,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 
 import {
   closeRunAction,
   reopenRunAction,
   setTickAction,
 } from "@/app/run/actions";
+import { useRunChangeRefresh } from "@/components/run-change-refresh";
 import { Button } from "@/components/ui/button";
+import { fetchRun } from "@/realtime/fetch-run";
 import type { RunView } from "@/runs/run-manager";
 
 export type RunCopy = {
@@ -36,6 +38,12 @@ export type RunCopy = {
   taskList: string;
   tasksDone: string;
   undo: string;
+};
+
+type TaskMutationState = {
+  queue: Promise<void>;
+  ticked: boolean;
+  version: number;
 };
 
 function withTick(
@@ -97,9 +105,24 @@ export function RunFlow({ initialRun, copy }: { initialRun: RunView; copy: RunCo
   const [error, setError] = useState<string | null>(null);
   const [undoVisible, setUndoVisible] = useState(false);
   const [isClosing, startClosing] = useTransition();
-  const taskMutationQueues = useRef(new Map<string, Promise<void>>());
-  const taskMutationVersions = useRef(new Map<string, number>());
+  const taskMutations = useRef(new Map<string, TaskMutationState>());
   const activeRoom = run.rooms.find((room) => room.id === activeRoomId) ?? null;
+
+  const refreshCurrentRun = useCallback(async () => {
+    let synchronizedRun = await fetchRun(run.id);
+
+    for (const [taskId, mutation] of taskMutations.current) {
+      synchronizedRun = withTick(synchronizedRun, taskId, mutation.ticked);
+    }
+
+    setRun(synchronizedRun);
+
+    if (synchronizedRun.closedAt) {
+      setActiveRoomId(null);
+    }
+  }, [run.id]);
+
+  useRunChangeRefresh(refreshCurrentRun);
 
   useEffect(() => {
     if (!undoVisible) {
@@ -111,12 +134,12 @@ export function RunFlow({ initialRun, copy }: { initialRun: RunView; copy: RunCo
   }, [undoVisible]);
 
   function changeTick(taskId: string, ticked: boolean) {
-    const version = (taskMutationVersions.current.get(taskId) ?? 0) + 1;
-    taskMutationVersions.current.set(taskId, version);
+    const previousMutation = taskMutations.current.get(taskId);
+    const version = (previousMutation?.version ?? 0) + 1;
     setError(null);
     setRun((currentRun) => withTick(currentRun, taskId, ticked));
 
-    const previousRequest = taskMutationQueues.current.get(taskId) ?? Promise.resolve();
+    const previousRequest = previousMutation?.queue ?? Promise.resolve();
     const request = previousRequest
       .catch(() => undefined)
       .then(async () => {
@@ -126,23 +149,27 @@ export function RunFlow({ initialRun, copy }: { initialRun: RunView; copy: RunCo
             .flatMap((room) => room.tasks)
             .find((task) => task.id === taskId);
 
-          if (savedTask && taskMutationVersions.current.get(taskId) === version) {
+          if (!savedTask) {
+            throw new Error("Saved Run does not contain the changed Task.");
+          }
+
+          if (taskMutations.current.get(taskId)?.version === version) {
             setRun((currentRun) => withTick(currentRun, taskId, savedTask.ticked));
           }
         } catch {
-          if (taskMutationVersions.current.get(taskId) === version) {
+          if (taskMutations.current.get(taskId)?.version === version) {
             setRun((currentRun) => withTick(currentRun, taskId, !ticked));
             setError(copy.runChangeError);
           }
         }
       })
       .finally(() => {
-        if (taskMutationQueues.current.get(taskId) === request) {
-          taskMutationQueues.current.delete(taskId);
+        if (taskMutations.current.get(taskId)?.queue === request) {
+          taskMutations.current.delete(taskId);
         }
       });
 
-    taskMutationQueues.current.set(taskId, request);
+    taskMutations.current.set(taskId, { queue: request, ticked, version });
   }
 
   function closeRun() {

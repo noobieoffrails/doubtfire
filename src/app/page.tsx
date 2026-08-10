@@ -12,6 +12,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { LanguageToggle } from "@/components/language-toggle";
+import { RunChangeRefresh } from "@/components/run-change-refresh";
 import { RoutineArt } from "@/components/routine-art";
 import { Button } from "@/components/ui/button";
 import { createContentCatalog } from "@/content/content-catalog";
@@ -50,6 +51,7 @@ export default async function HomePage() {
 
   return (
     <main className="appCanvas">
+      <RunChangeRefresh />
       <section className="appSurface" aria-labelledby="home-title">
         <header className="appHeader">
           <Link className="wordmark" href="/" aria-label={copy.doubtfireHome}>
