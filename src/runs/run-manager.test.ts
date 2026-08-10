@@ -341,6 +341,42 @@ describeWithPostgres("Run manager", () => {
     );
   });
 
+  it("enforces the 04:00 rollover before a stale Run can change", async () => {
+    const catalog = createContentCatalog(database);
+    const routine = await catalog.createRoutine({
+      cadenceDays: 7,
+      includesRoutineId: null,
+      name: "Weekly",
+    });
+    const room = await catalog.createRoom({ name: "Kitchen" });
+    const task = await catalog.createTask({
+      groupLabel: null,
+      note: null,
+      roomId: room.id,
+      routineId: routine.id,
+      text: "Wipe the sink",
+    });
+    let currentTime = new Date("2026-08-10T15:00:00.000Z");
+    const manager = createRunManager(database, {
+      now: () => currentTime,
+      timeZone: "Europe/Helsinki",
+    });
+    const run = await manager.start(routine.id);
+    currentTime = new Date("2026-08-11T01:00:00.000Z");
+
+    await expect(manager.setTick(run.id, task.id, true)).rejects.toThrow(
+      "This Task is not in an open Run.",
+    );
+    await expect(manager.close(run.id)).rejects.toThrow(
+      "This Run is already closed.",
+    );
+    await expect(manager.get(run.id)).resolves.toMatchObject({
+      closedAt: currentTime,
+      closedByRollover: true,
+      tickedCount: 0,
+    });
+  });
+
   it("returns the open Run or the latest Run that can be reopened", async () => {
     const catalog = createContentCatalog(database);
     const routine = await catalog.createRoutine({

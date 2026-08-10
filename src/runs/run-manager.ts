@@ -251,7 +251,10 @@ export function createRunManager(
       taskId: string,
       ticked: boolean,
     ): Promise<RunView> {
+      const currentTime = now();
+
       return database.transaction(async (transaction) => {
+        await closeStaleRuns(transaction, currentTime, timeZone);
         const [presentedTask] = await transaction
           .select({ taskId: runTasks.taskId })
           .from(runTasks)
@@ -273,7 +276,7 @@ export function createRunManager(
         if (ticked) {
           await transaction
             .insert(ticks)
-            .values({ runId, taskId, tickedAt: now() })
+            .values({ runId, taskId, tickedAt: currentTime })
             .onConflictDoNothing();
         } else {
           await transaction
@@ -286,17 +289,22 @@ export function createRunManager(
     },
 
     async close(runId: string): Promise<RunView> {
-      const [closedRun] = await database
-        .update(runs)
-        .set({ closedAt: now(), closedByRollover: false })
-        .where(and(eq(runs.id, runId), isNull(runs.closedAt)))
-        .returning({ id: runs.id });
+      const currentTime = now();
 
-      if (!closedRun) {
-        throw new Error("This Run is already closed.");
-      }
+      return database.transaction(async (transaction) => {
+        await closeStaleRuns(transaction, currentTime, timeZone);
+        const [closedRun] = await transaction
+          .update(runs)
+          .set({ closedAt: currentTime, closedByRollover: false })
+          .where(and(eq(runs.id, runId), isNull(runs.closedAt)))
+          .returning({ id: runs.id });
 
-      return getRunView(database, closedRun.id);
+        if (!closedRun) {
+          throw new Error("This Run is already closed.");
+        }
+
+        return getRunView(transaction, closedRun.id);
+      });
     },
 
     async reopen(runId: string): Promise<RunView> {
@@ -311,6 +319,7 @@ export function createRunManager(
         await transaction.execute(
           sql`select pg_advisory_xact_lock(hashtext('doubtfire-open-run'))`,
         );
+        await closeStaleRuns(transaction, currentTime, timeZone);
         const [openRun] = await transaction
           .select({ id: runs.id })
           .from(runs)
@@ -347,6 +356,7 @@ export function createRunManager(
     },
 
     async get(runId: string): Promise<RunView> {
+      await closeStaleRuns(database, now(), timeZone);
       return getRunView(database, runId);
     },
 
