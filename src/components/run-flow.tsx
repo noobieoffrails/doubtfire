@@ -20,6 +20,8 @@ import {
 import { useRunChangeRefresh } from "@/components/run-change-refresh";
 import { Button } from "@/components/ui/button";
 import { fetchRun } from "@/realtime/fetch-run";
+import type { Locale } from "@/i18n/config";
+import { formatPlural } from "@/i18n/plural";
 import type { RunView } from "@/runs/run-manager";
 
 export type RunCopy = {
@@ -32,14 +34,13 @@ export type RunCopy = {
   markingAsDone: string;
   nextRoom: string;
   noDueTasks: string;
-  roomProgress: string;
   rooms: string;
   roomsInRun: string;
   runChangeError: string;
+  runClosed: string;
   runCompleteDescription: string;
   runNavigation: string;
   taskList: string;
-  tasksDone: string;
   undo: string;
 };
 
@@ -110,7 +111,15 @@ function RunAlert({ message }: { message: string | null }) {
   );
 }
 
-export function RunFlow({ initialRun, copy }: { initialRun: RunView; copy: RunCopy }) {
+export function RunFlow({
+  initialRun,
+  locale,
+  copy,
+}: {
+  initialRun: RunView;
+  locale: Locale;
+  copy: RunCopy;
+}) {
   const [run, setRun] = useState(initialRun);
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -220,14 +229,14 @@ export function RunFlow({ initialRun, copy }: { initialRun: RunView; copy: RunCo
             </span>
             <h1 id="completion-title">{copy.cleaningComplete}</h1>
             <p>{copy.runCompleteDescription}</p>
-            <strong>{copy.tasksDone.replace("{count}", String(run.tickedCount))}</strong>
+            <strong>{formatPlural(locale, "tasksDone", run.tickedCount)}</strong>
             <Link className="completionHomeLink" href="/">
               {copy.backHome}
             </Link>
           </div>
           {undoVisible ? (
             <div className="undoToast" role="status">
-              <span>{copy.runCompleteDescription}</span>
+              <span>{copy.runClosed}</span>
               <button type="button" onClick={undoClose}>
                 <RotateCcw aria-hidden="true" />
                 {copy.undo}
@@ -253,7 +262,9 @@ export function RunFlow({ initialRun, copy }: { initialRun: RunView; copy: RunCo
               <span className="srOnly">{copy.backToRooms}</span>
             </button>
             <span className="runRoutineName">{run.routine.name}</span>
-            <span className="runCount">{copy.roomProgress.replace("{count}", String(activeRoom.tickedCount))}</span>
+            <span className="runCount">
+              {formatPlural(locale, "tasksDone", activeRoom.tickedCount)}
+            </span>
           </nav>
 
           <section className="roomTaskSection">
@@ -292,13 +303,14 @@ export function RunFlow({ initialRun, copy }: { initialRun: RunView; copy: RunCo
             <span className="srOnly">{copy.backHome}</span>
           </Link>
           <span className="runRoutineName">{run.routine.name}</span>
-          <span className="runCount">{copy.tasksDone.replace("{count}", String(run.tickedCount))}</span>
+          <span className="runCount">
+            {formatPlural(locale, "tasksDone", run.tickedCount)}
+          </span>
         </nav>
 
         <section className="runOverview">
           <div className="runOverviewHeading">
             <h1 id="run-title">{copy.roomsInRun}</h1>
-            <p>{copy.tasksDone.replace("{count}", String(run.tickedCount))}</p>
           </div>
 
           {run.rooms.length ? (
@@ -315,7 +327,7 @@ export function RunFlow({ initialRun, copy }: { initialRun: RunView; copy: RunCo
                       onClick={() => setActiveRoomId(room.id)}
                     >
                       <span>{room.name}</span>
-                      <small>{copy.roomProgress.replace("{count}", String(room.tickedCount))}</small>
+                      <small>{formatPlural(locale, "tasksDone", room.tickedCount)}</small>
                       <ChevronRight aria-hidden="true" />
                     </button>
                   </li>

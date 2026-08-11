@@ -19,6 +19,7 @@ import { RoutineArt } from "@/components/routine-art";
 import { createContentCatalog } from "@/content/content-catalog";
 import { getDatabase } from "@/db/client";
 import { dictionaries } from "@/i18n/config";
+import { formatPlural } from "@/i18n/plural";
 import { getRequestLocale } from "@/i18n/server";
 import { allowsLocalPreview } from "@/lib/local-preview";
 import { requireAllowedUser } from "@/auth/server";
@@ -84,7 +85,11 @@ export default async function HomePage() {
             </h1>
             <p>
               {openRun
-                ? copy.tasksDone.replace("{count}", String(openRun.tickedCount))
+                ? formatPlural(
+                    locale,
+                    "tasksDone",
+                    openRun.tickedCount,
+                  )
                 : copy.instruction}
             </p>
             {openRun ? (
@@ -126,9 +131,10 @@ export default async function HomePage() {
               <span>
                 <strong>{copy.lastRun}</strong>
                 <small>
-                  {copy.tasksDone.replace(
-                    "{count}",
-                    String(runState.resumableRun.tickedCount),
+                  {formatPlural(
+                    locale,
+                    "tasksDone",
+                    runState.resumableRun.tickedCount,
                   )}
                 </small>
               </span>
@@ -180,7 +186,7 @@ export default async function HomePage() {
           {content.routines.length === 0 ? (
             <div className="homeEmptyState">
               <p>{copy.noHomeRoutines}</p>
-              <Link href="/settings">{copy.manageRoutines}</Link>
+              <Link href="/settings">{copy.settings}</Link>
             </div>
           ) : null}
         </section>
