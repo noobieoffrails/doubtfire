@@ -1,0 +1,1145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Doubtfire — design review, 2026-08-11</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
+    --sp-6: 24px; --sp-8: 32px; --sp-12: 48px; --sp-16: 64px; --sp-20: 80px;
+    --t-xs: 12px; --t-sm: 14px; --t-base: 16px; --t-lg: 18px;
+    --t-xl: 20px; --t-2xl: 24px; --t-3xl: 30px; --t-4xl: 36px; --t-5xl: 48px;
+    --w-body: 400; --w-bold: 700;
+
+    --bg: #fbfcfe;
+    --surface: #ffffff;
+    --surface-2: #f2f5fa;
+    --line: #d8dee9;
+    --line-soft: #e8edf4;
+    --ink: #141a2e;
+    --ink-2: #4a5570;
+    --ink-3: #5f6a85;
+    --accent: #0a4fd0;
+    --accent-ink: #08307e;
+
+    --sev-block-bg: #fdecea; --sev-block-ink: #8c1d13; --sev-block-line: #e8b4ad;
+    --sev-high-bg: #fdf0e0;  --sev-high-ink: #86500b;  --sev-high-line: #e6c894;
+    --sev-med-bg: #eaf1fd;   --sev-med-ink: #1d4a91;   --sev-med-line: #b3c9ec;
+    --sev-low-bg: #eef1f6;   --sev-low-ink: #4c566d;   --sev-low-line: #ccd4e1;
+    --ok-bg: #e8f5ee;        --ok-ink: #0e5c3a;        --ok-line: #a9d5bd;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e1219; --surface: #161b25; --surface-2: #1c222e;
+      --line: #2e3746; --line-soft: #242c3a;
+      --ink: #e8ecf4; --ink-2: #a8b2c6; --ink-3: #8590a6;
+      --accent: #74a6ff; --accent-ink: #a8c8ff;
+      --sev-block-bg: #2e1714; --sev-block-ink: #f2a79c; --sev-block-line: #5c2f28;
+      --sev-high-bg: #2c2110; --sev-high-ink: #e8be79; --sev-high-line: #5a4522;
+      --sev-med-bg: #14203a;  --sev-med-ink: #9dbdf0;  --sev-med-line: #2c4270;
+      --sev-low-bg: #1c222e;  --sev-low-ink: #a0aabf;  --sev-low-line: #333c4d;
+      --ok-bg: #0f2a1e;       --ok-ink: #8fd4b0;       --ok-line: #24503a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1219; --surface: #161b25; --surface-2: #1c222e;
+    --line: #2e3746; --line-soft: #242c3a;
+    --ink: #e8ecf4; --ink-2: #a8b2c6; --ink-3: #8590a6;
+    --accent: #74a6ff; --accent-ink: #a8c8ff;
+    --sev-block-bg: #2e1714; --sev-block-ink: #f2a79c; --sev-block-line: #5c2f28;
+    --sev-high-bg: #2c2110; --sev-high-ink: #e8be79; --sev-high-line: #5a4522;
+    --sev-med-bg: #14203a;  --sev-med-ink: #9dbdf0;  --sev-med-line: #2c4270;
+    --sev-low-bg: #1c222e;  --sev-low-ink: #a0aabf;  --sev-low-line: #333c4d;
+    --ok-bg: #0f2a1e;       --ok-ink: #8fd4b0;       --ok-line: #24503a;
+  }
+  :root[data-theme="light"] {
+    --bg: #fbfcfe; --surface: #ffffff; --surface-2: #f2f5fa;
+    --line: #d8dee9; --line-soft: #e8edf4;
+    --ink: #141a2e; --ink-2: #4a5570; --ink-3: #5f6a85;
+    --accent: #0a4fd0; --accent-ink: #08307e;
+    --sev-block-bg: #fdecea; --sev-block-ink: #8c1d13; --sev-block-line: #e8b4ad;
+    --sev-high-bg: #fdf0e0;  --sev-high-ink: #86500b;  --sev-high-line: #e6c894;
+    --sev-med-bg: #eaf1fd;   --sev-med-ink: #1d4a91;   --sev-med-line: #b3c9ec;
+    --sev-low-bg: #eef1f6;   --sev-low-ink: #4c566d;   --sev-low-line: #ccd4e1;
+    --ok-bg: #e8f5ee;        --ok-ink: #0e5c3a;        --ok-line: #a9d5bd;
+  }
+
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    margin: 0;
+    padding: var(--sp-8) var(--sp-6) var(--sp-20);
+    background: var(--bg);
+    color: var(--ink);
+    font: var(--w-body) var(--t-base)/1.6 ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+
+  h1, h2, h3, h4 { font-weight: var(--w-bold); letter-spacing: -0.02em; margin: 0; }
+  h1 { font-size: var(--t-5xl); line-height: 1.1; letter-spacing: -0.03em; }
+  h2 { font-size: var(--t-3xl); line-height: 1.2; margin-top: var(--sp-20); }
+  h3 { font-size: var(--t-xl); line-height: 1.3; margin-top: var(--sp-12); }
+  h4 { font-size: var(--t-base); line-height: 1.4; margin-top: var(--sp-6); }
+  p { margin: 0 0 var(--sp-4); max-width: 72ch; }
+  ul, ol { margin: 0 0 var(--sp-4); padding-left: var(--sp-6); max-width: 72ch; }
+  li { margin-bottom: var(--sp-2); }
+  a { color: var(--accent); text-underline-offset: 0.2em; }
+  strong { font-weight: var(--w-bold); }
+  code {
+    font: var(--w-body) 0.875em/1.5 ui-monospace, "SF Mono", Menlo, monospace;
+    color: var(--ink-2);
+    background: var(--surface-2);
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+    padding: 1px 5px;
+    overflow-wrap: anywhere;
+  }
+  pre {
+    background: var(--surface-2);
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    padding: var(--sp-4);
+    overflow-x: auto;
+    margin: 0 0 var(--sp-4);
+  }
+  pre code { background: none; border: 0; padding: 0; }
+
+  .lede { font-size: var(--t-lg); color: var(--ink-2); max-width: 68ch; }
+  .meta {
+    display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-6);
+    margin: var(--sp-6) 0 0; padding: 0; list-style: none;
+    font-size: var(--t-sm); color: var(--ink-3);
+  }
+  .meta li { margin: 0; }
+  .meta b { color: var(--ink-2); font-weight: var(--w-bold); }
+
+  hr { border: 0; border-top: 1px solid var(--line); margin: var(--sp-16) 0 0; }
+
+  .grid {
+    display: grid; gap: var(--sp-3);
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    margin-bottom: var(--sp-6);
+  }
+  .stat {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; padding: var(--sp-4);
+  }
+  .stat b { display: block; font-size: var(--t-3xl); line-height: 1.1; letter-spacing: -0.02em; }
+  .stat span { display: block; margin-top: var(--sp-1); font-size: var(--t-sm); color: var(--ink-3); }
+
+  table { border-collapse: collapse; width: 100%; font-size: var(--t-sm); margin: 0 0 var(--sp-4); }
+  .scroller { overflow-x: auto; margin: 0 0 var(--sp-4); }
+  .scroller table { margin: 0; }
+  th, td { text-align: left; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  td > code:only-child { white-space: nowrap; overflow-wrap: normal; }
+  th { font-weight: var(--w-bold); color: var(--ink-2); border-bottom: 1px solid var(--line); white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: 0; }
+  .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  .finding {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; padding: var(--sp-6); margin-bottom: var(--sp-4);
+  }
+  .finding > :last-child { margin-bottom: 0; }
+  .fhead { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-3); margin-bottom: var(--sp-3); }
+  .fid {
+    font: var(--w-bold) var(--t-xs)/1 ui-monospace, Menlo, monospace;
+    color: var(--ink-3); padding-top: 4px; letter-spacing: 0.04em;
+  }
+  .ftitle { font-size: var(--t-lg); font-weight: var(--w-bold); line-height: 1.35; flex: 1 1 260px; }
+  .sev {
+    font-size: var(--t-xs); font-weight: var(--w-bold); line-height: 1;
+    padding: 5px var(--sp-2); border-radius: 999px; border: 1px solid; white-space: nowrap;
+  }
+  .sev-blocking { background: var(--sev-block-bg); color: var(--sev-block-ink); border-color: var(--sev-block-line); }
+  .sev-high { background: var(--sev-high-bg); color: var(--sev-high-ink); border-color: var(--sev-high-line); }
+  .sev-medium { background: var(--sev-med-bg); color: var(--sev-med-ink); border-color: var(--sev-med-line); }
+  .sev-low { background: var(--sev-low-bg); color: var(--sev-low-ink); border-color: var(--sev-low-line); }
+
+  .row { margin-bottom: var(--sp-3); }
+  .row:last-child { margin-bottom: 0; }
+  .row .k {
+    display: inline-block; min-width: 84px; font-size: var(--t-xs);
+    font-weight: var(--w-bold); color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .row p { display: inline; margin: 0; }
+  .row .body { margin-top: var(--sp-1); }
+  .row .body p:last-child { margin-bottom: 0; }
+
+  .callout {
+    background: var(--ok-bg); border: 1px solid var(--ok-line);
+    border-radius: 10px; padding: var(--sp-6); margin-bottom: var(--sp-6);
+  }
+  .callout h3 { margin-top: 0; color: var(--ok-ink); }
+  .callout > :last-child { margin-bottom: 0; }
+  .callout ul { max-width: 68ch; }
+
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--line);
+    border-radius: 0 8px 8px 0; padding: var(--sp-3) var(--sp-4);
+    margin: 0 0 var(--sp-4); font-size: var(--t-sm); color: var(--ink-2);
+  }
+  .note > :last-child { margin-bottom: 0; }
+  .note b { color: var(--ink); }
+
+  .toc { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: var(--sp-6); }
+  .toc h2 { margin: 0 0 var(--sp-3); font-size: var(--t-base); }
+  .toc ol { margin: 0; padding-left: var(--sp-5); font-size: var(--t-sm); columns: 2; column-gap: var(--sp-8); }
+  .toc li { margin-bottom: var(--sp-2); break-inside: avoid; }
+  @media (max-width: 560px) { .toc ol { columns: 1; } }
+
+  .new {
+    display: inline-block; font-size: var(--t-xs); font-weight: var(--w-bold);
+    line-height: 1; padding: 4px var(--sp-2); border-radius: 999px;
+    background: var(--sev-med-bg); color: var(--sev-med-ink);
+    border: 1px solid var(--sev-med-line); vertical-align: 3px; margin-left: var(--sp-2);
+  }
+
+  footer { margin-top: var(--sp-20); padding-top: var(--sp-6); border-top: 1px solid var(--line); font-size: var(--t-sm); color: var(--ink-3); }
+
+  @media print {
+    body { padding: 0; }
+    .finding, .stat, .toc, .callout { break-inside: avoid; }
+    h2 { break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Doubtfire — design review</h1>
+  <p class="lede">Second pass. The first pass covered visual craft: hierarchy, spacing, type, colour, and copy. This pass adds the four diagnostics a look-only review cannot reach — interaction cost, navigation, keyboard and zoom accessibility, and timing — and reports them together with the first-pass findings.</p>
+  <ul class="meta">
+    <li><b>Commit</b> <code>3984077</code> (<code>main</code>)</li>
+    <li><b>Date</b> 2026-08-11</li>
+    <li><b>Screens</b> Home · Run overview · Room Tasks · Completion · Settings</li>
+    <li><b>Widths</b> 375 px · 1280 px · 200 % zoom</li>
+  </ul>
+</header>
+
+<hr>
+
+<section>
+  <h2>Summary</h2>
+
+  <div class="grid">
+    <div class="stat"><b>52</b><span>findings</span></div>
+    <div class="stat"><b>5</b><span>blocking</span></div>
+    <div class="stat"><b>17</b><span>new this pass</span></div>
+    <div class="stat"><b>34</b><span>font sizes in one stylesheet</span></div>
+  </div>
+
+  <p>Everything was verified against the running application with a local database, invented content, and the local preview flag. Contrast ratios, type sizes, spacing values, tab order, reflow at 200 % zoom, animation durations, and the optimistic-tick failure path were measured rather than estimated. Where a defect was reproduced, the report says so.</p>
+
+  <p>The single most useful result of this pass: three findings that looked independent in the first pass turn out to be one user-visible failure. The primary action gives no acknowledgment (<a href="#T1">T1</a>), so a person clicks it twice; the server correctly refuses the second click; and with no error boundary (<a href="#S1">S1</a>) the refusal becomes an <strong>HTTP 500 crash</strong>. That chain was reproduced. It is also why <a href="#H1">H1</a> — the button sitting above the choice it depends on — is not a matter of taste: it produces a measurable keyboard defect too (<a href="#A6">A6</a>).</p>
+
+  <div class="note">
+    <p><b>Doing the work?</b> Start at <code>docs/design-review-work-order.md</code>, not here. It holds the step sequence, the progress state, and the two decisions that need the repository owner. This report is the detail behind it.</p>
+    <p><b>Scope note.</b> This review does not reopen anything settled in <code>docs/adr/</code>. In particular, ADR 0002 holds on every screen — no denominators, no outstanding counts, no lateness. Where a recommendation could be mistaken for a breach of it, the report says why it is not.</p>
+  </div>
+
+  <div class="toc">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#working">What is already correct</a></li>
+      <li><a href="#root">Root cause — no token layer</a></li>
+      <li><a href="#a11y">Accessibility</a></li>
+      <li><a href="#states">States, errors, and recovery</a></li>
+      <li><a href="#timing">Timing and motion</a></li>
+      <li><a href="#flow">Flow and interaction cost</a></li>
+      <li><a href="#nav">Navigation and orientation</a></li>
+      <li><a href="#hierarchy">Hierarchy and layout</a></li>
+      <li><a href="#copy">Copy</a></li>
+      <li><a href="#cleanup">Cleanup</a></li>
+      <li><a href="#order">Suggested order of work</a></li>
+      <li><a href="#verify">How to verify</a></li>
+    </ol>
+  </div>
+</section>
+
+<section id="working">
+  <h2>What is already correct</h2>
+
+  <div class="callout">
+    <h3>Do not break these during the corrective work</h3>
+    <p>Several of these are easy to lose in step 1, which touches nearly every rule in the stylesheet. Some are genuinely good engineering that a visual review would never credit.</p>
+    <ul>
+      <li><strong>Text contrast passes everywhere.</strong> Every text pair measured between 5.2:1 and 16.7:1. The palette is sound; the contrast problems in this report are borders and controls, not text.</li>
+      <li><strong>Starting a Run is race-safe.</strong> <code>run-manager.ts:173</code> takes a Postgres advisory lock, closes stale Runs, and refuses a second open Run. A double click produces exactly one Run. The data layer is careful — only the interface around it is not.</li>
+      <li><strong>Optimistic ticks roll back correctly.</strong> <code>run-flow.tsx:136</code> queues changes per Task, versions them, and restores the previous state on failure. Verified by stopping Postgres mid-Run: the tick reverted cleanly and an accurate message appeared.</li>
+      <li><strong>Undo is preferred over confirmation.</strong> Closing a Run is reversible for 30 seconds and can also be reopened from Home. This is exactly the right trade for a routine action.</li>
+      <li><strong>Error copy follows the rule.</strong> "Could not save the change. Try again." states what happened and the way forward, with no blame and no "Oops".</li>
+      <li><strong>Real controls, not styled divs.</strong> Buttons are <code>&lt;button&gt;</code>, choices are <code>&lt;label&gt;</code>-wrapped radios, disclosures are <code>&lt;details&gt;</code>. All the free keyboard behaviour is intact.</li>
+      <li><strong>Focus is visible globally.</strong> <code>globals.css:69</code> applies a 3 px cobalt outline to buttons, links, inputs, selects, summaries, and text areas.</li>
+      <li><strong>Transition timing is right.</strong> All four transitions run 150–180 ms with eased curves, well inside budget.</li>
+      <li><strong>The decorative image is correctly hidden</strong> with <code>alt=""</code> rather than an omitted attribute.</li>
+      <li><strong>Counters use tabular figures</strong>, and <code>.formMessage</code> reserves 1.4 em, so neither shifts the layout.</li>
+      <li><strong>Home survives 200 % zoom without horizontal scrolling.</strong> Settings does not — see <a href="#A2">A2</a>.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="root">
+  <h2>Root cause</h2>
+  <p>This is step 2 in <a href="#order">the order of work</a>, and everything after it depends on it. Most of <a href="#hierarchy">Hierarchy and layout</a> is downstream, and fixing those individually without this step recreates the drift.</p>
+
+  <div class="finding" id="F1">
+    <div class="fhead">
+      <span class="fid">F1</span>
+      <span class="ftitle">The design system has no token layer in code</span>
+      <span class="sev sev-high">High</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p><code>DESIGN.md</code> declares a spacing scale, a type scale, weights, and radii. <code>globals.css</code> declares 13 colour variables and 2 shadows, and nothing else. Every other value is therefore typed by hand where it is used.</p>
+    </div></div>
+    <div class="scroller">
+      <table>
+        <thead><tr><th>Value type</th><th class="num">Distinct values</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td><code>font-size</code></td><td class="num">34</td><td>Twelve of them inside a single 4 px band: 11.5, 11.8, 12.2, 12.5, 12.8, 13.1, 13.4, 14.0, 14.1, 14.4, 14.7, 15.7 px</td></tr>
+          <tr><td><code>font-weight</code></td><td class="num">14</td><td>520, 540, 600, 650, 680, 700, 720, 730, 740, 750, 760, 770, 780, 800</td></tr>
+          <tr><td>spacing</td><td class="num">37</td><td>About 60 % off the project's own declared scale, including 7, 10, 11, 13, 18, 22, 26, 34, 38, 42, 52, 68, 88, 94, 112, 118 px</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="row"><span class="k">Principle</span><div class="body">
+      <p>A constrained modular scale creates rhythm. Arbitrary values read as accidental because they are. The difference between weight 720 and 730 is invisible; the difference between fourteen weights and two is visible immediately. <em>(Refactoring UI; Practical UI)</em></p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Add a token layer to <code>:root</code> before any other change, then replace every literal in <code>globals.css</code> with the nearest token. Where a literal is more than one step away, choose the token and accept the change — the nearest-token rule is the point of the exercise.</p>
+<pre><code>:root {
+  --space-1: 4px;   --space-2: 8px;   --space-3: 12px;  --space-4: 16px;
+  --space-5: 20px;  --space-6: 24px;  --space-8: 32px;  --space-12: 48px;
+  --space-16: 64px; --space-20: 80px;
+
+  --text-xs: 0.75rem;   --text-sm: 0.875rem;  --text-base: 1rem;
+  --text-lg: 1.125rem;  --text-xl: 1.25rem;   --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem; --text-4xl: 2.25rem;  --text-5xl: 3rem;
+
+  --weight-body: 450; --weight-strong: 700; --weight-display: 780;
+  --radius-control: 14px; --radius-pill: 999px;
+}</code></pre>
+    </div></div>
+  </div>
+
+  <div class="finding" id="F2">
+    <div class="fhead">
+      <span class="fid">F2</span>
+      <span class="ftitle">Two styling systems are installed and neither enforces a scale</span>
+      <span class="sev sev-medium">Medium</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p>Tailwind v4 is imported at <code>globals.css:1</code> and <code>components.json</code> configures shadcn/ui. Exactly one component uses Tailwind — <code>ui/button.tsx:10</code> — and every class in it is an arbitrary value (<code>rounded-[14px]</code>, <code>bg-[var(--cobalt)]</code>), which bypasses the Tailwind scales completely. Everything else is hand-written CSS.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Choose one and record the choice. The recommendation is to <strong>keep the hand-written CSS and drop Tailwind</strong>: the interface is small, the class names are already semantic, and the asymmetric island shapes are awkward as utilities. If Tailwind stays, map the F1 tokens into its theme so both share one scale.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="F3">
+    <div class="fhead">
+      <span class="fid">F3</span>
+      <span class="ftitle">DESIGN.md documents Phase 1 only</span>
+      <span class="sev sev-medium">Medium</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p>It describes three fixed Routines, disabled Routine fields, and a locked primary action. None of that is still true. It has no entry for the Run overview, the Room islands, the Task rows, the tick control, the Settings managers, the forms, the completion screen, or the toast — roughly half the current interface.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Rewrite it after the work below is complete, with the F1 token layer as the source of truth.</p>
+    </div></div>
+  </div>
+</section>
+
+<section id="a11y">
+  <h2>Accessibility</h2>
+  <p><code>PRODUCT.md</code> commits to WCAG 2.2 Level AA. These are measured failures against that commitment, not opinions. A1 to A3 were reproduced in the browser.</p>
+
+  <div class="finding" id="A1">
+    <div class="fhead">
+      <span class="fid">A1</span>
+      <span class="ftitle">Form control borders measure 1.49:1</span>
+      <span class="sev sev-blocking">Blocking</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p><code>globals.css:1319</code> sets every input, select, and text area border to <code>rgb(16 24 77 / 18%)</code>. Over white that composites to <code>#d4d5de</code> — <strong>1.49:1</strong>. WCAG 2.2 success criterion 1.4.11 Non-text Contrast requires <strong>3:1</strong> for the visual boundary of a control.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Use a border measuring at least 3:1 against every background a field sits on. <code>#8a90a8</code> gives 3.1:1 over white. Verify against <code>--sky</code>, <code>--mint</code>, <code>--lilac</code>, and <code>--ice</code> — fields appear on all four.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="A2">
+    <div class="fhead">
+      <span class="fid">A2</span>
+      <span class="ftitle">Settings requires horizontal scrolling at 200 % zoom</span>
+      <span class="sev sev-blocking">Blocking</span>
+      <span class="new">New</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p>Reproduced at a 375 px viewport with the root font size doubled: <code>/settings</code> produces a document <strong>423 px wide in a 375 px viewport</strong>. WCAG 2.2 success criterion 1.4.10 Reflow prohibits two-dimensional scrolling at this width.</p>
+      <p>The cause is the settings header: a 46 px back button, the wordmark, a 76 px minimum-width language pill, and a 46 px account control in a flex row that neither wraps nor shrinks. Home escapes only because it has no back button — it is 46 px under the limit, not safe by design.</p>
+    </div></div>
+    <div class="row"><span class="k">Principle</span><div class="body">
+      <p>Layouts must survive enlargement. Fixed pixel dimensions on text containers overflow the moment a user increases text size.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Let <code>.appHeader</code> wrap, allow the wordmark to shrink or hide below a threshold, and drop the fixed <code>min-width</code> on the language toggle. Then re-test both headers at 200 %.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="A3">
+    <div class="fhead">
+      <span class="fid">A3</span>
+      <span class="ftitle">Status and error messages are announced to nobody</span>
+      <span class="sev sev-blocking">Blocking</span>
+      <span class="new">New</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p>Verified by stopping Postgres mid-Run and tapping a Task. The tick applied optimistically, then silently reverted, and <code>.runError</code> appeared with <strong><code>role</code> and <code>aria-live</code> both null</strong>. A screen-reader user hears the button announce "pressed", then nothing — the state reverts with no announcement at all.</p>
+      <p>This is WCAG 2.2 success criterion 4.1.3 Status Messages. <code>ContentForm</code> gets this right; the Run flow does not.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Give <code>.runError</code> <code>role="alert"</code>, and render the container unconditionally so the live region exists before the update. Conditionally mounting a live region does not announce reliably.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="A4">
+    <div class="fhead">
+      <span class="fid">A4</span>
+      <span class="ftitle">Type below the 12 px floor, on a device used at arm's length</span>
+      <span class="sev sev-high">High</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <div class="scroller"><table>
+        <thead><tr><th>Selector</th><th class="num">rem</th><th class="num">px</th></tr></thead>
+        <tbody>
+          <tr><td><code>.navItem</code></td><td class="num">0.72</td><td class="num">11.5</td></tr>
+          <tr><td><code>.runTaskCopy small</code></td><td class="num">0.74</td><td class="num">11.8</td></tr>
+          <tr><td><code>.availabilityNote</code></td><td class="num">0.76</td><td class="num">12.2</td></tr>
+          <tr><td><code>.runCount</code>, <code>.resumableRunIsland small</code></td><td class="num">0.78</td><td class="num">12.5</td></tr>
+        </tbody>
+      </table></div>
+      <p><code>PRODUCT.md</code> names a <strong>wall-mounted tablet</strong> as one of the two devices. Text at 11.5 px is not readable at arm's length, and a 32 px tick circle is not a confident target for a wet or gloved hand.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Set 12 px as the absolute floor and 14 px for anything read while standing away from the screen. Raise navigation labels to 12 px and Run counters to 14 px. Consider whether the Run screens deserve a larger scale overall on wide viewports — see <a href="#L5">L5</a>.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="A5">
+    <div class="fhead">
+      <span class="fid">A5</span>
+      <span class="ftitle">Disabled buttons have no visual disabled state</span>
+      <span class="sev sev-high">High</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p><code>ui/button.tsx:10</code> sets <code>disabled:opacity-100</code>, which cancels the browser's dimming, and nothing replaces it. Only <code>.startButton:disabled</code> supplies its own colour. So <code>markDoneButton</code> during <code>isClosing</code> looks fully enabled and does not change its label, and the <code>ContentForm</code> submit during <code>pending</code> keeps an enabled appearance while its label changes.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Give the shared <code>Button</code> one disabled treatment: muted fill, no action shadow, <code>cursor: not-allowed</code>. Add a busy label to <code>markDoneButton</code> the way <code>ContentForm</code> already does.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="A6">
+    <div class="fhead">
+      <span class="fid">A6</span>
+      <span class="ftitle">Tab order does not follow visual order on Home</span>
+      <span class="sev sev-high">High</span>
+      <span class="new">New</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p>Measured focus sequence with each element's vertical position:</p>
+      <div class="scroller"><table>
+        <thead><tr><th class="num">Tab</th><th>Element</th><th class="num">y</th></tr></thead>
+        <tbody>
+          <tr><td class="num">1</td><td>Doubtfire wordmark</td><td class="num">61</td></tr>
+          <tr><td class="num">2</td><td>Language toggle</td><td class="num">56</td></tr>
+          <tr><td class="num">3</td><td><strong>Start cleaning</strong></td><td class="num">458</td></tr>
+          <tr><td class="num">4</td><td>Weekly radio</td><td class="num">292</td></tr>
+          <tr><td class="num">5</td><td>Fortnightly radio</td><td class="num">442</td></tr>
+          <tr><td class="num">6</td><td>Quarterly radio</td><td class="num">590</td></tr>
+        </tbody>
+      </table></div>
+      <p>Focus travels down to the button, jumps back up 166 px to the first Routine, then continues down. The cause is that the button is declared at <code>page.tsx:95</code> and submits a form declared 50 lines later at <code>page.tsx:146</code>.</p>
+    </div></div>
+    <div class="row"><span class="k">Principle</span><div class="body">
+      <p>When DOM order and visual order diverge, focus jumps unpredictably. This is the same root cause as <a href="#H1">H1</a> — which is why H1 is a defect rather than a preference.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Moving the primary action below the Routine list (H1) fixes both at once. Do not solve it with <code>tabindex</code>.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="A7">
+    <div class="fhead">
+      <span class="fid">A7</span>
+      <span class="ftitle">The disabled navigation item is indistinguishable from a working one</span>
+      <span class="sev sev-medium">Medium</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p>History renders as <code>&lt;span class="navItem disabled" aria-disabled="true"&gt;</code> with the same colour, icon weight, and label style as Settings. <code>.navItem.disabled</code> changes only the cursor. It is not focusable, so a keyboard user cannot reach it to learn it is disabled.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Remove the item until History exists. A two-item navigation is honest, and the item returns with the feature.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="A8">
+    <div class="fhead">
+      <span class="fid">A8</span>
+      <span class="ftitle">Task buttons announce the Group label before the Task</span>
+      <span class="sev sev-medium">Medium</span>
+      <span class="new">New</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p>Measured accessible names: <code>"Sink Clean the sink and taps"</code> and <code>"Wipe the worktops Use the blue cloth. Rinse it after."</code> The Group label and the Note are concatenated into the button name, and the Group comes first.</p>
+      <p><code>CONTEXT.md</code> is explicit that a Group is "purely a visual cluster — never checkable". The markup gives it the leading position in the control's name.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Move the Group out of the button into a group heading (see <a href="#H7">H7</a>), and associate the Note with <code>aria-describedby</code> rather than folding it into the name.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="A9">
+    <div class="fhead">
+      <span class="fid">A9</span>
+      <span class="ftitle">Thin semantic structure on the Run screens</span>
+      <span class="sev sev-low">Low</span>
+      <span class="new">New</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p>The Run overview exposes one <code>h1</code> and no other heading, so a screen-reader user cannot jump between the Room grid and the all-Tasks list. There is no <code>&lt;nav&gt;</code> landmark on either Run screen. The Routine radio group on Home has no group name.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Add an <code>h2</code> to the Room grid and the all-Tasks disclosure. Wrap the Routine list in a <code>&lt;fieldset&gt;</code> with a visually hidden <code>&lt;legend&gt;</code>, or give it <code>role="radiogroup"</code> with <code>aria-labelledby</code> pointing at the existing heading.</p>
+    </div></div>
+  </div>
+</section>
+
+<section id="states">
+  <h2>States, errors, and recovery</h2>
+
+  <div class="finding" id="S1">
+    <div class="fhead">
+      <span class="fid">S1</span>
+      <span class="ftitle">The app has no error, not-found, or loading boundaries</span>
+      <span class="sev sev-blocking">Blocking</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p>There is no <code>error.tsx</code>, <code>global-error.tsx</code>, <code>not-found.tsx</code>, or <code>loading.tsx</code> anywhere in <code>src/app</code>. Verified against the running app:</p>
+      <ul>
+        <li><code>GET /run/&lt;unknown-uuid&gt;</code> returns <strong>HTTP 500</strong>.</li>
+        <li><code>GET /nope</code> returns Next.js's default page: unstyled, English only, outside the design language.</li>
+      </ul>
+      <p>This matters more than usual here — the tablet stays signed in between cleaning days and can hold a stale Run URL.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Add <code>not-found.tsx</code> and <code>error.tsx</code> in the Doubtfire language, localised through the existing dictionary. Make <code>RunPage</code> call <code>notFound()</code> when the Run does not exist.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="S2">
+    <div class="fhead">
+      <span class="fid">S2</span>
+      <span class="ftitle">Double-clicking "Start cleaning" crashes the app</span>
+      <span class="sev sev-blocking">Blocking</span>
+      <span class="new">New</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p>Reproduced. The database stays correct — the advisory lock in <code>run-manager.ts:180</code> means exactly one Run is created — but the second submission throws <code>Error: A Run is already open.</code> and, with no error boundary, returns <strong>HTTP 500</strong>.</p>
+      <p>The chain is three findings compounding: no acknowledgment within 100 ms (<a href="#T1">T1</a>) → the user clicks again → the server correctly refuses → no boundary catches it (<a href="#S1">S1</a>).</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>All three links in the chain deserve fixing, but the cheapest single fix is T1: acknowledge the click and disable the control while the action is in flight. Then give <code>startRunAction</code> and <code>reopenRunFromHomeAction</code> the same <code>ContentFormState</code> treatment <code>ContentForm</code> already uses, so a genuine failure shows next to the button instead of replacing the page.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="S3">
+    <div class="fhead">
+      <span class="fid">S3</span>
+      <span class="ftitle">Archive is a one-way door in the interface</span>
+      <span class="sev sev-high">High</span>
+      <span class="new">New</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p><code>CONTEXT.md</code> defines Archived as "withdrawn from future Runs while keeping its identity and its history. Content is never deleted." The data model honours that — <code>archivedAt</code> is set, nothing is deleted. But there is <strong>no unarchive path anywhere in the application</strong>. Confirmed by search: no route, no action, no control.</p>
+      <p>So an action the domain describes as reversible is, from the household's point of view, permanent. Archiving a Room with twenty Tasks cannot be undone without database access.</p>
+    </div></div>
+    <div class="row"><span class="k">Principle</span><div class="body">
+      <p>Friction should be proportional to severity, and undo should be preferred to confirmation. Currently the friction is a two-step disclosure — appropriate for a reversible action — while the consequence is irreversible.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Add an archived-content view in Settings with a restore action. That makes the existing friction correct. If restoring is deferred, raise the friction instead and say plainly in the confirmation that it cannot be undone from the app.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="S4">
+    <div class="fhead">
+      <span class="fid">S4</span>
+      <span class="ftitle">Inert Routine islands look tappable</span>
+      <span class="sev sev-medium">Medium</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p>When a Run is open, <code>page.tsx:154</code> adds <code>.inactive</code> — <code>opacity: 0.72; pointer-events: none</code>. The islands keep their size, fill, icons, and, on the previously chosen Routine, the cobalt selection ring. Nothing says why they no longer respond.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Replace the list with the open Run's own card, or reduce it to a quiet non-interactive summary and drop the selection ring. Do not leave full-size controls that ignore taps.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="S5">
+    <div class="fhead">
+      <span class="fid">S5</span>
+      <span class="ftitle">A completed Task looks the same as an outstanding one</span>
+      <span class="sev sev-medium">Medium</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p><code>RunTaskControl</code> changes only the 32 px circle. The Task text keeps its full weight, colour, and position, so done work competes with remaining work in a list the user is scanning for what is left.</p>
+    </div></div>
+    <div class="row"><span class="k">Principle</span><div class="body">
+      <p>Professional work decides what recedes. This does not breach ADR 0002: de-emphasising <em>completed</em> work is not escalating unfinished work, and it introduces no denominator.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>On a ticked row, drop the text to <code>--ink-soft</code> and reduce its weight one step. Do not strike it through, and <strong>do not reorder</strong> — reordering under a moving finger causes mistakes, and the second device would see rows jump.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="S6">
+    <div class="fhead">
+      <span class="fid">S6</span>
+      <span class="ftitle">The empty state disables the primary action without saying why</span>
+      <span class="sev sev-medium">Medium</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p><code>page.tsx:99</code> disables "Start cleaning" when no Routine exists. The explanation lives in <code>.homeEmptyState</code> further down the page. The note that used to sit under the button is gone — <code>.availabilityNote</code> and the <code>phaseNote</code> dictionary key are now dead code.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Put one short line under the disabled button naming what is missing, linking to Settings. Then delete the dead class and key.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="S7">
+    <div class="fhead">
+      <span class="fid">S7</span>
+      <span class="ftitle">The tick error does not say which Task failed</span>
+      <span class="sev sev-medium">Medium</span>
+      <span class="new">New</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p>The message is generic — "Could not save the change." — and renders below the whole Task list, at <code>y=413</code> when the tapped Task was at <code>y=177</code>. In a Room with twelve Tasks the message appears off-screen, and with two people ticking on two devices there is no way to tell which change was lost.</p>
+    </div></div>
+    <div class="row"><span class="k">Principle</span><div class="body">
+      <p>Put the message where the user is looking, next to its cause.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Attach the failure to the Task row that failed, and keep a retry affordance on that row.</p>
+    </div></div>
+  </div>
+</section>
+
+<section id="timing">
+  <h2>Timing and motion</h2>
+  <p class="lede" style="font-size: var(--t-base)">This whole section is new. Timing does not appear in a screenshot, which is why it ships unexamined.</p>
+
+  <div class="finding" id="T1">
+    <div class="fhead">
+      <span class="fid">T1</span>
+      <span class="ftitle">The primary action gives no acknowledgment for about a second</span>
+      <span class="sev sev-high">High</span>
+      <span class="new">New</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p>Measured: after clicking "Start cleaning", the main thread was busy for roughly <strong>860 ms</strong> before the new screen appeared — on localhost, with a warm dev server and a local database. During that window the button did not disable, did not change colour, did not change its label, and showed no spinner. <code>startRunAction</code> is a plain server action on a <code>&lt;form&gt;</code> with no <code>useActionState</code> or <code>useFormStatus</code>.</p>
+      <p>Real conditions will be worse: Railway in EU West, a phone on household Wi-Fi.</p>
+    </div></div>
+    <div class="row"><span class="k">Principle</span><div class="body">
+      <p>Acknowledge every action within 100 ms — that is the threshold at which cause and effect still feel linked. The acknowledgment is not the result. Past it, users cannot tell whether the click registered and click again, which is how double submissions happen. This one produces <a href="#S2">S2</a>.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Wrap the Home actions in <code>useActionState</code> and use <code>useFormStatus</code> to disable the button and show a busy label on submit. Do the same for "Mark as done", which already has <code>isClosing</code> available and does not use it visually (<a href="#A5">A5</a>).</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="T2">
+    <div class="fhead">
+      <span class="fid">T2</span>
+      <span class="ftitle">Both entrance animations exceed the 500 ms ceiling</span>
+      <span class="sev sev-medium">Medium</span>
+      <span class="new">New</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <div class="scroller"><table>
+        <thead><tr><th>Animation</th><th class="num">Duration</th><th>What it animates</th></tr></thead>
+        <tbody>
+          <tr><td><code>care-settle</code></td><td class="num">700 ms</td><td>The Home still life, on every visit</td></tr>
+          <tr><td><code>run-rooms-settle</code></td><td class="num">520 ms</td><td><code>clip-path</code> and <code>blur(3px)</code> on the entire Room grid</td></tr>
+        </tbody>
+      </table></div>
+      <p><code>run-rooms-settle</code> is the more costly of the two: it blurs the Run overview's <em>primary content</em> — the Rooms the user came to tap — for half a second on every render, including every real-time refresh from the other device.</p>
+    </div></div>
+    <div class="row"><span class="k">Principle</span><div class="body">
+      <p>Anything over about 500 ms feels slow for interface motion, however elegant in isolation. You saw it once; the household sees it several times per cleaning day. Motion earns its place by doing a job — softening a transition, explaining origin, drawing the eye, or making waiting legible. Blurring content that has already loaded does none of these.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Bring <code>care-settle</code> to about 300 ms. Remove the blur from <code>run-rooms-settle</code> and shorten it to about 250 ms, or drop it entirely — the Room grid does not need an entrance.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="T3">
+    <div class="fhead">
+      <span class="fid">T3</span>
+      <span class="ftitle">No loading boundaries, so route changes show nothing</span>
+      <span class="sev sev-medium">Medium</span>
+      <span class="new">New</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p>There is no <code>loading.tsx</code> anywhere. Both <code>/settings</code> and <code>/run/[runId]</code> query the database during server rendering, so navigation to them shows the previous screen until the new one is fully ready.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Add <code>loading.tsx</code> for both routes, rendering the header and a quiet skeleton of the content shape. Something to look at beats a frozen previous screen.</p>
+    </div></div>
+  </div>
+
+  <div class="note">
+    <p><b>Checked and correct.</b> All four transitions run 150–180 ms with <code>cubic-bezier(0.16, 1, 0.3, 1)</code> — inside budget and properly eased rather than linear. <code>prefers-reduced-motion</code> gates both keyframe animations. The small transforms that survive the guard (<code>translateY(-2px)</code>, <code>scale(1.05)</code>) are the right thing to keep: the user asked for less movement, not less feedback.</p>
+  </div>
+</section>
+
+<section id="flow">
+  <h2>Flow and interaction cost</h2>
+  <p class="lede" style="font-size: var(--t-base)">A screen can be well-formed while the path through it is tedious. This section counts actions rather than judging appearances.</p>
+
+  <div class="finding" id="L1">
+    <div class="fhead">
+      <span class="fid">L1</span>
+      <span class="ftitle">The cheaper path through a Run is hidden behind the slower one</span>
+      <span class="sev sev-high">High</span>
+      <span class="new">New</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p>Counted for a realistic Weekly Run — 12 Tasks across 6 Rooms:</p>
+      <div class="scroller"><table>
+        <thead><tr><th>Path</th><th class="num">Actions</th><th>Breakdown</th></tr></thead>
+        <tbody>
+          <tr><td>Room-first (the default)</td><td class="num">21</td><td>1 start + 1 enter + 5 "Next Room" + 12 ticks + 1 back + 1 mark done</td></tr>
+          <tr><td>All-Tasks list (hidden)</td><td class="num">15</td><td>1 start + 1 open disclosure + 12 ticks + 1 mark done</td></tr>
+          <tr><td>Irreducible minimum</td><td class="num">12</td><td>one tick per Task</td></tr>
+        </tbody>
+      </table></div>
+      <p>The flat list is <strong>six actions cheaper</strong>, and it sits collapsed below six 112 px Room islands, well past the fold.</p>
+    </div></div>
+    <div class="row"><span class="k">Principle</span><div class="body">
+      <p>Interaction cost is countable, which makes it arguable. Count the actions before defending a flow.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p><em>Not</em> "make the flat list the default" — Room-first has real justification, because people clean room by room and the grouping matches the physical task. The defect is that the alternative is buried. Raise the all-Tasks list to a visible, equal choice at the top of the Run overview, and remember which one the household used last.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="L2">
+    <div class="fhead">
+      <span class="fid">L2</span>
+      <span class="ftitle">Ticking one out-of-order Task costs about six navigation actions</span>
+      <span class="sev sev-medium">Medium</span>
+      <span class="new">New</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p>From inside the Bathroom, remembering a Kitchen Task costs: back to grid → scroll → tap Kitchen → tick → back → scroll → tap Bathroom. Rooms can only be reached sequentially through "Next Room" or by returning to the grid; there is no jump between Rooms.</p>
+      <p>This is not hypothetical for this product — two people clean the same flat at the same time and cross paths.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Add a Room switcher to the Room screen header — the Room name as a menu, or a compact horizontal Room strip. Fixing <a href="#L1">L1</a> also helps, because the flat list makes any Task reachable without navigation.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="L3">
+    <div class="fhead">
+      <span class="fid">L3</span>
+      <span class="ftitle">Home costs a scroll round trip on every Run</span>
+      <span class="sev sev-high">High</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p>The reading order is: greeting → "Choose a routine and start." → <strong>[Start cleaning]</strong> → the Routine list. The instruction says choose first; the interface presents the action first. At 375 px the button and the third Routine sit about 700 px apart, so choosing a non-default Routine means scrolling down, tapping, and scrolling back up.</p>
+      <p>It also produces the keyboard defect in <a href="#A6">A6</a>.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Move the primary action below the Routine list, keeping the greeting and still life at the top. The sequence then matches the sentence: choose, then start.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="L4">
+    <div class="fhead">
+      <span class="fid">L4</span>
+      <span class="ftitle">At 200 % zoom the Home hero fills the viewport before any functional content</span>
+      <span class="sev sev-medium">Medium</span>
+      <span class="new">New</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p>At 200 % the greeting, the instruction, and the still life consume the entire screen. "Routines" is clipped behind the bottom navigation, and the navigation labels themselves are cut off at the viewport edge. The wordmark also collides with the language toggle, and the coral dot overlaps the button.</p>
+      <p>Because <code>.welcome</code> keeps its 58 % / 42 % split at every size, the copy is squeezed into two-word lines — a measure far below the 45-character minimum.</p>
+    </div></div>
+    <div class="row"><span class="k">Principle</span><div class="body">
+      <p>A hero that pushes every page's first real content off-screen means each visit begins by scrolling past decoration.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Collapse <code>.welcome</code> to a single column below a width or above a text-size threshold, and cap the still life's height so the Routine list stays reachable.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="L5">
+    <div class="fhead">
+      <span class="fid">L5</span>
+      <span class="ftitle">The wall tablet is a stated device with no design of its own</span>
+      <span class="sev sev-medium">Medium</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p><code>PRODUCT.md</code> names a wall-mounted tablet used while cleaning. Above 760 px the app renders a fixed 1020 px "phone in a box" — the same 11.5 px navigation labels, the same 32 px tick circles, the same 16 px Task text, viewed from further away and operated with occupied hands.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>This is a product decision, not a CSS tweak, so it is flagged rather than specified. The options are a distinct tablet scale for the Run screens, or a decision that the tablet is a glanceable display and the phone is the input device. Worth settling before the Run screens are restyled in step 6.</p>
+    </div></div>
+  </div>
+</section>
+
+<section id="nav">
+  <h2>Navigation and orientation</h2>
+
+  <div class="finding" id="N1">
+    <div class="fhead">
+      <span class="fid">N1</span>
+      <span class="ftitle">The page name does not match the link that leads to it</span>
+      <span class="sev sev-medium">Medium</span>
+      <span class="new">New</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p>The navigation item says <strong>Settings</strong>. The document title says <strong>Settings</strong>. The page heading says <strong>Manage cleaning content</strong>. The Home empty state links to the same page with the words <strong>Manage Routines</strong>.</p>
+    </div></div>
+    <div class="row"><span class="k">Principle</span><div class="body">
+      <p>The social contract of navigation: the page's name matches the words in the link that led there, exactly. A mismatch makes users doubt they arrived in the right place.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Pick one name and use it in the nav item, the title, the heading, and every link. "Settings" is the better choice — it is where people expect to find this, and the page manages more than content.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="N2">
+    <div class="fhead">
+      <span class="fid">N2</span>
+      <span class="ftitle">Every Run page is titled "Doubtfire"</span>
+      <span class="sev sev-medium">Medium</span>
+      <span class="new">New</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p><code>/run/[runId]</code> sets no metadata, so the document title falls back to the default. Every Run, every Room, and the completion screen are all "Doubtfire" in the tab, in history, and in the task switcher — on the device most likely to be left open on a screen.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Add <code>generateMetadata</code> to the Run route using the Routine name, matching the pattern already used by <code>/sign-in</code> and <code>/access-denied</code>.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="N3">
+    <div class="fhead">
+      <span class="fid">N3</span>
+      <span class="ftitle">The Run screens drop global navigation entirely</span>
+      <span class="sev sev-low">Low</span>
+      <span class="new">New</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p>Trunk test from the Room screen: no wordmark, no bottom navigation, no breadcrumb. The header carries a back arrow, the Routine name, and a counter. "Where am I?" is answered only by the Room name; "what else can I do?" is not answered at all.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>A focused mode during a Run is a defensible choice, so this is low severity — but make it deliberate. At minimum restore the wordmark, so the deepest screen still identifies the product.</p>
+    </div></div>
+  </div>
+</section>
+
+<section id="hierarchy">
+  <h2>Hierarchy and layout</h2>
+
+  <div class="finding" id="H1">
+    <div class="fhead">
+      <span class="fid">H1</span>
+      <span class="ftitle">The loudest control on the Run overview is the one that ends the Run</span>
+      <span class="sev sev-high">High</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p><code>markDoneButton</code> is a full-width solid cobalt button — the strongest element on the screen — and it closes the Run. The primary path is entering a Room. A person scrolling to the bottom of the Room list meets the end-the-session control first.</p>
+    </div></div>
+    <div class="row"><span class="k">Principle</span><div class="body">
+      <p>One primary action per screen; count the solid high-contrast buttons in the viewport and more than one is the defect. The 30-second undo is why this is a hierarchy finding rather than a blocking one.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Step it down to an outline button or a cobalt text action. Reserve the solid fill for the forward path.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="H2">
+    <div class="fhead">
+      <span class="fid">H2</span>
+      <span class="ftitle">The Room Task screen is the least designed screen in the app</span>
+      <span class="sev sev-high">High</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p>This is where the household spends nearly all its time, and it is the only screen with no colour, no shape, and no continuity. Kitchen is a sky island on the Room grid and a plain white hairline list one tap later. With a short Task list, more than half the viewport is empty below an unpinned button.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Carry the Room's colour into the screen — a coloured header band is enough. Pin the forward button so its position does not depend on how many Tasks the Room has.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="H3">
+    <div class="fhead">
+      <span class="fid">H3</span>
+      <span class="ftitle">The Settings introduction fills the first viewport</span>
+      <span class="sev sev-medium">Medium</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p><code>.settingsIntro</code> sets the heading to 2.45 rem, so "Manage cleaning content" wraps to three lines. With the description and the link pills the island runs about 660 px on an 812 px screen — 74 % at 200 % zoom. The first Routine sits below the fold on a screen whose only purpose is editing lists.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Drop the heading to <code>--text-3xl</code>, cut the island padding to <code>--space-6</code>, and let the first manager section start inside the first viewport.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="H4">
+    <div class="fhead">
+      <span class="fid">H4</span>
+      <span class="ftitle">Display type is used for wayfinding</span>
+      <span class="sev sev-medium">Medium</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p><code>.runOverviewHeading h1</code> and <code>.roomTaskHeading h1</code> use <code>clamp(2.5rem, 10vw, 4.7rem)</code> — the same treatment as the "Ready when you are." greeting. "Choose a Room" is an instruction, not a greeting. <code>DESIGN.md</code> states its own Short-Display Rule: display type is for short greetings only.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Use the headline step for both. Reserve display type for Home and the completion screen.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="H5">
+    <div class="fhead">
+      <span class="fid">H5</span>
+      <span class="ftitle">Groups have more space inside them than around them</span>
+      <span class="sev sev-medium">Medium</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <ul>
+        <li><strong>Run Room islands:</strong> 20–22 px padding inside, 12 px gap between. Inner exceeds outer, so six choices read as one block.</li>
+        <li><strong>Form fields:</strong> 7 px from label to field, 14 px between field groups. The ordering is right but a 2:1 ratio at these sizes does not separate anything.</li>
+        <li><strong>Home Routine list:</strong> clears the fixed navigation by about 10 px, which reads as a clipped card.</li>
+      </ul>
+    </div></div>
+    <div class="row"><span class="k">Principle</span><div class="body">
+      <p>Gestalt proximity — grouping is read from relative distance. Equal or near-equal spacing destroys the grouping information.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Room grid gap to <code>--space-6</code>. Form fields: <code>--space-2</code> inside a group, <code>--space-6</code> between. Routine section bottom padding to <code>calc(var(--space-20) + env(safe-area-inset-bottom))</code>.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="H6">
+    <div class="fhead">
+      <span class="fid">H6</span>
+      <span class="ftitle">A decorative icon wears the action colour</span>
+      <span class="sev sev-low">Low</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p><code>roomTaskHeading &gt; svg</code> renders <code>ListChecks</code> at 46 × 46 px in <code>--cobalt</code> beside the Room name. It is decorative and <code>aria-hidden</code>. <code>DESIGN.md</code> reserves cobalt for actions, focus, and active state.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Remove it, or reduce it to 24 px in <code>--ink-soft</code>.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="H7">
+    <div class="fhead">
+      <span class="fid">H7</span>
+      <span class="ftitle">Group labels outrank the Tasks they describe</span>
+      <span class="sev sev-medium">Medium</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p><code>.runTaskCopy small</code> renders the Group in <code>--cobalt</code> at weight 760, above the Task text. It also repeats on every member rather than heading the cluster once, so two Tasks in "Sink" print "Sink" twice and form no visible group. See <a href="#A8">A8</a> for the screen-reader consequence.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Render the Group once as a quiet subheading in <code>--ink-soft</code> above its Tasks, and remove the per-Task eyebrow.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="H8">
+    <div class="fhead">
+      <span class="fid">H8</span>
+      <span class="ftitle">Room colours cycle and imply a grouping that does not exist</span>
+      <span class="sev sev-low">Low</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p>Island colours are assigned by <code>index % 3</code>. With six Rooms, Kitchen and Bedroom are both sky, Bathroom and Koti are both mint. Similarity implies belonging, and here it means nothing.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Derive the colour from the Room's identity rather than its position, or use one calm fill and let the name carry the distinction. The second option is simpler and costs nothing.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="H9">
+    <div class="fhead">
+      <span class="fid">H9</span>
+      <span class="ftitle">The section-link pills look like controls they are not</span>
+      <span class="sev sev-low">Low</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p><code>.sectionLinks a</code> renders as white pills on the sky island — the same treatment as the language toggle in the header. They read as filters or tabs; they are anchor jumps within a three-section page.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Remove them on phones, where scrolling costs less than deciding what a pill does. If they stay on wide screens, render them as plain underlined links.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="H10">
+    <div class="fhead">
+      <span class="fid">H10</span>
+      <span class="ftitle">The coral dot lands in dead space</span>
+      <span class="sev sev-low">Low</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p><code>.coralDot</code> sits at <code>right: -15px; bottom: 42px</code> inside <code>.welcomeCopy</code>. On a phone it sits between the button and the still life; at 1280 px it floats alone in the gutter; at 200 % zoom it overlaps the button. It is a small filled circle in a warning-adjacent colour, attached to nothing, and it reads as an unread badge.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Anchor it to the still-life island so it reads as part of the composition, or remove it.</p>
+    </div></div>
+  </div>
+</section>
+
+<section id="copy">
+  <h2>Copy</h2>
+
+  <div class="finding" id="C1">
+    <div class="fhead">
+      <span class="fid">C1</span>
+      <span class="ftitle">"1 Tasks done"</span>
+      <span class="sev sev-blocking">Blocking</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <p><code>tasksDone: "{count} Tasks done"</code> has no plural form. Observed on Home, in the Run header, in the Run overview subheading, and on the completion screen. <code>everyDays: "Every {days} days"</code> has the same defect and appears on every Routine row in Settings.</p>
+      <p>Finnish is not exempt: <code>"{count} tehtävää tehty"</code> gives "1 tehtävää tehty" where Finnish needs "1 tehtävä tehty", and <code>"Joka {days}. päivä"</code> gives "Joka 1. päivä".</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Use <code>Intl.PluralRules</code> with a <code>one</code> and an <code>other</code> form per locale.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="C2">
+    <div class="fhead">
+      <span class="fid">C2</span>
+      <span class="ftitle">English capitalises domain terms and Finnish does not</span>
+      <span class="sev sev-medium">Medium</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <div class="scroller"><table>
+        <thead><tr><th>English</th><th>Finnish</th></tr></thead>
+        <tbody>
+          <tr><td>Add Room</td><td>Lisää huone</td></tr>
+          <tr><td>Archive Task</td><td>Arkistoi tehtävä</td></tr>
+          <tr><td>All Tasks</td><td>Kaikki tehtävät</td></tr>
+          <tr><td>Choose a Room</td><td>Valitse huone</td></tr>
+        </tbody>
+      </table></div>
+      <p>The two locales follow different conventions for the same interface. "A Routine gives its Tasks a Cadence and can include another Routine" puts four capitalised nouns in eleven words, which makes a two-person household app read like a specification. The Finnish strings show the product does not need it — they are already clear.</p>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Sentence case for interface copy in both locales, and for control labels ("Add routine", "All tasks", "Next room"). Keep the capitalised terms in <code>CONTEXT.md</code>, <code>AGENTS.md</code>, the ADRs, and code identifiers, where they do their job.</p>
+    </div></div>
+  </div>
+
+  <div class="finding" id="C3">
+    <div class="fhead">
+      <span class="fid">C3</span>
+      <span class="ftitle">Repeated and inconsistent strings</span>
+      <span class="sev sev-low">Low</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <ul>
+        <li>The completion card and the undo toast both render <code>runCompleteDescription</code>, so "This Run is marked as done." appears twice on screen at once.</li>
+        <li>The Run overview prints its counter twice — in the sticky header and again as the subheading.</li>
+        <li>The header counter changes wording between screens: <code>"{count} done"</code> on the Room screen, <code>"{count} Tasks done"</code> on the overview.</li>
+        <li>"Add Routine" labels both the disclosure and the submit button inside it.</li>
+      </ul>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body">
+      <p>Give the toast its own short string ("Run closed"). Remove the overview subheading. Use one counter string on both Run screens. Use "Save routine" on the submit button, and apply the same to Rooms and Tasks.</p>
+    </div></div>
+  </div>
+</section>
+
+<section id="cleanup">
+  <h2>Cleanup</h2>
+  <div class="finding" id="X1">
+    <div class="fhead">
+      <span class="fid">X1</span>
+      <span class="ftitle">Dead code found during the review</span>
+      <span class="sev sev-low">Low</span>
+    </div>
+    <div class="row"><span class="k">Symptom</span><div class="body">
+      <ul>
+        <li><code>.availabilityNote</code> (<code>globals.css:242</code>) — no longer used by any component.</li>
+        <li><code>.islandWeekly</code>, <code>.islandFortnightly</code>, <code>.islandQuarterly</code> — replaced by <code>.islandSky</code>, <code>.islandMint</code>, <code>.islandLilac</code>.</li>
+        <li><code>phaseNote</code> in both dictionaries (<code>i18n/config.ts:68</code>, <code>:161</code>) — no longer rendered.</li>
+      </ul>
+    </div></div>
+    <div class="row"><span class="k">Fix</span><div class="body"><p>Remove in the same pass as F1.</p></div></div>
+  </div>
+</section>
+
+<section id="order">
+  <h2>Suggested order of work</h2>
+  <p>Each step is independently reviewable. Follow the workflow in <code>AGENTS.md</code>: one worktree and one branch per step, with small coherent commits.</p>
+  <div class="scroller">
+    <table>
+      <thead><tr><th class="num">Step</th><th>Contents</th><th>Why this position</th></tr></thead>
+      <tbody>
+        <tr><td class="num">1</td><td>T1, S2, S1</td><td>The crash chain. T1 is the cheapest link to cut, S1 makes every later failure safe, and the whole step barely touches the stylesheet. Highest user impact per unit of work in the list.</td></tr>
+        <tr><td class="num">2</td><td>F1, F2, X1</td><td>The token layer must exist before anything is restyled, so every later step is a token change rather than a new literal. Land it before step 3 — it rewrites almost every rule in <code>globals.css</code>, so nothing may run in parallel with it.</td></tr>
+        <tr><td class="num">3</td><td>A1, A2, A3, A4, A5, A7, A9</td><td>Measured failures against a stated commitment. Small, self-contained, objectively verifiable.</td></tr>
+        <tr><td class="num">4</td><td>C1, C3, N1, N2</td><td>Copy and naming. Low risk, and it makes the screenshots in step 5 readable.</td></tr>
+        <tr><td class="num">5</td><td>L3, A6, H1, S4, S6, H5, L4, H10</td><td>The Home and Run overview flow. L3 and A6 are one change. The largest behavioural step, so it deserves its own review.</td></tr>
+        <tr><td class="num">6</td><td>L1, L2, L5, H2, H4, H6, H7, H8, A8, S5, S7, N3, T2, T3</td><td>The Run experience end to end. Settle <a href="#L5">L5</a> before starting this step.</td></tr>
+        <tr><td class="num">7</td><td>S3, H3, H9</td><td>Settings, including the archive restore path.</td></tr>
+        <tr><td class="num">8</td><td>C2</td><td>The sentence-case pass across both locales. Last, so it covers strings added in steps 2–7.</td></tr>
+        <tr><td class="num">9</td><td>F3</td><td>Rewrite <code>DESIGN.md</code> to describe what now exists.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note">
+    <p><b>Deferred to you, not to the agent:</b> <a href="#L5">L5</a> (what the wall tablet is for) and <a href="#S3">S3</a> (whether restore ships or archive gets heavier friction). Both change what gets built rather than how it looks.</p>
+  </div>
+</section>
+
+<section id="verify">
+  <h2>How to verify</h2>
+  <p>Run the app with a local database and the preview flag:</p>
+  <pre><code>DOUBTFIRE_ALLOW_UNAUTHENTICATED_PREVIEW=1 pnpm dev</code></pre>
+  <p>Check all of these after every step. The last four are the ones a look-only review misses.</p>
+  <ul>
+    <li><strong>Scale audit.</strong> <code>grep -oE 'font-size: [^;]+;' src/app/globals.css | sort -u | wc -l</code> must fall from 34 to the size of the declared scale. Repeat for <code>font-weight</code> and spacing.</li>
+    <li><strong>Squint test.</strong> Blur each screen until text is illegible. The most important element must still stand out and groups must still separate.</li>
+    <li><strong>Solid-button count.</strong> More than one solid high-contrast button per viewport is a defect.</li>
+    <li><strong>Contrast.</strong> 4.5:1 body text; 3:1 control boundaries and large text. Measure, do not eyeball.</li>
+    <li><strong>Extremes.</strong> A 40-character Room name, a 200-character Task, a Run with one Room, a Run with no Due Tasks.</li>
+    <li><strong>Both locales.</strong> Finnish strings are consistently longer and break layouts English survives.</li>
+    <li><strong>Keyboard pass.</strong> Tab every screen. The focus ring must always be visible <em>and follow visual order</em> — log the y-coordinate of each stop and confirm it increases.</li>
+    <li><strong>200 % zoom.</strong> Double the root font size at a 375 px viewport and confirm <code>document.scrollWidth === clientWidth</code> on every route.</li>
+    <li><strong>Timing.</strong> Every action shows a visual change within 100 ms, independent of how long the work takes. Animations under 500 ms.</li>
+    <li><strong>Break it on purpose.</strong> Stop Postgres and tick a Task; double-click the primary action; open <code>/run/&lt;random-uuid&gt;</code>. Recovery is where flows actually fail.</li>
+  </ul>
+</section>
+
+<footer>
+  <p>Doubtfire design review · commit <code>3984077</code> · 2026-08-11 · second pass, covering visual craft plus interaction cost, navigation, keyboard and zoom accessibility, and timing.</p>
+</footer>
+
+</div>
+</body>
+</html>
