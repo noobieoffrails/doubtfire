@@ -3,6 +3,7 @@ import { fiFI } from "@clerk/localizations";
 import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
 import type { ReactNode } from "react";
+import { LocaleProvider } from "@/components/locale-provider";
 import { getRequestLocale } from "@/i18n/server";
 import { allowsLocalPreview } from "@/lib/local-preview";
 import "./globals.css";
@@ -68,11 +69,15 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             __html: `document.currentScript?.before(document.createComment(${JSON.stringify(designContract)}));`,
           }}
         />
-        {isLocalPreview ? (
-          children
-        ) : (
-          <ClerkProvider localization={locale === "fi" ? fiFI : undefined}>{children}</ClerkProvider>
-        )}
+        <LocaleProvider locale={locale}>
+          {isLocalPreview ? (
+            children
+          ) : (
+            <ClerkProvider localization={locale === "fi" ? fiFI : undefined}>
+              {children}
+            </ClerkProvider>
+          )}
+        </LocaleProvider>
       </body>
     </html>
   );

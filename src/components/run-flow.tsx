@@ -29,6 +29,7 @@ export type RunCopy = {
   cleaningComplete: string;
   doneWithRoom: string;
   markAsDone: string;
+  markingAsDone: string;
   nextRoom: string;
   noDueTasks: string;
   roomProgress: string;
@@ -336,7 +337,7 @@ export function RunFlow({ initialRun, copy }: { initialRun: RunView; copy: RunCo
           {error ? <p className="runError">{error}</p> : null}
           <Button className="markDoneButton" type="button" disabled={isClosing} onClick={closeRun}>
             <CheckCircle2 aria-hidden="true" />
-            {copy.markAsDone}
+            {isClosing ? copy.markingAsDone : copy.markAsDone}
           </Button>
         </section>
       </section>
