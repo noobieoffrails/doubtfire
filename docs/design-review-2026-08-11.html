@@ -239,6 +239,7 @@
   <p>The single most useful result of this pass: three findings that looked independent in the first pass turn out to be one user-visible failure. The primary action gives no acknowledgment (<a href="#T1">T1</a>), so a person clicks it twice; the server correctly refuses the second click; and with no error boundary (<a href="#S1">S1</a>) the refusal becomes an <strong>HTTP 500 crash</strong>. That chain was reproduced. It is also why <a href="#H1">H1</a> — the button sitting above the choice it depends on — is not a matter of taste: it produces a measurable keyboard defect too (<a href="#A6">A6</a>).</p>
 
   <div class="note">
+    <p><b>Doing the work?</b> Start at <code>docs/design-review-work-order.md</code>, not here. It holds the step sequence, the progress state, and the two decisions that need the repository owner. This report is the detail behind it.</p>
     <p><b>Scope note.</b> This review does not reopen anything settled in <code>docs/adr/</code>. In particular, ADR 0002 holds on every screen — no denominators, no outstanding counts, no lateness. Where a recommendation could be mistaken for a breach of it, the report says why it is not.</p>
   </div>
 
@@ -285,7 +286,7 @@
 
 <section id="root">
   <h2>Root cause</h2>
-  <p>Fix this first. Most of <a href="#hierarchy">Hierarchy and layout</a> is downstream of it, and fixing those individually without this step recreates the drift.</p>
+  <p>This is step 2 in <a href="#order">the order of work</a>, and everything after it depends on it. Most of <a href="#hierarchy">Hierarchy and layout</a> is downstream, and fixing those individually without this step recreates the drift.</p>
 
   <div class="finding" id="F1">
     <div class="fhead">
@@ -1099,12 +1100,12 @@
     <table>
       <thead><tr><th class="num">Step</th><th>Contents</th><th>Why this position</th></tr></thead>
       <tbody>
-        <tr><td class="num">1</td><td>F1, F2, X1</td><td>The token layer must exist before anything is restyled, so every later step is a token change rather than a new literal.</td></tr>
-        <tr><td class="num">2</td><td>T1, S2, S1</td><td>The crash chain. T1 is the cheapest link to cut, and S1 makes every later failure safe. Highest user impact per unit of work in the whole list.</td></tr>
-        <tr><td class="num">3</td><td>A1, A2, A3, A4, A5</td><td>Measured failures against a stated commitment. Small, self-contained, objectively verifiable.</td></tr>
+        <tr><td class="num">1</td><td>T1, S2, S1</td><td>The crash chain. T1 is the cheapest link to cut, S1 makes every later failure safe, and the whole step barely touches the stylesheet. Highest user impact per unit of work in the list.</td></tr>
+        <tr><td class="num">2</td><td>F1, F2, X1</td><td>The token layer must exist before anything is restyled, so every later step is a token change rather than a new literal. Land it before step 3 — it rewrites almost every rule in <code>globals.css</code>, so nothing may run in parallel with it.</td></tr>
+        <tr><td class="num">3</td><td>A1, A2, A3, A4, A5, A7, A9</td><td>Measured failures against a stated commitment. Small, self-contained, objectively verifiable.</td></tr>
         <tr><td class="num">4</td><td>C1, C3, N1, N2</td><td>Copy and naming. Low risk, and it makes the screenshots in step 5 readable.</td></tr>
-        <tr><td class="num">5</td><td>L3, A6, H1, S4, S6, H5</td><td>The Home and Run overview flow. L3 and A6 are one change. The largest behavioural step, so it deserves its own review.</td></tr>
-        <tr><td class="num">6</td><td>L1, L2, H2, H4, H6, H7, A8, S5, S7, T2, T3</td><td>The Run experience end to end. Settle <a href="#L5">L5</a> before starting this step.</td></tr>
+        <tr><td class="num">5</td><td>L3, A6, H1, S4, S6, H5, L4, H10</td><td>The Home and Run overview flow. L3 and A6 are one change. The largest behavioural step, so it deserves its own review.</td></tr>
+        <tr><td class="num">6</td><td>L1, L2, L5, H2, H4, H6, H7, H8, A8, S5, S7, N3, T2, T3</td><td>The Run experience end to end. Settle <a href="#L5">L5</a> before starting this step.</td></tr>
         <tr><td class="num">7</td><td>S3, H3, H9</td><td>Settings, including the archive restore path.</td></tr>
         <tr><td class="num">8</td><td>C2</td><td>The sentence-case pass across both locales. Last, so it covers strings added in steps 2–7.</td></tr>
         <tr><td class="num">9</td><td>F3</td><td>Rewrite <code>DESIGN.md</code> to describe what now exists.</td></tr>

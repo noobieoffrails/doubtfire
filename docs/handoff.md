@@ -39,10 +39,22 @@ The 2026-08-10 Phase 3 browser check covered start, Room navigation, Tick, un-Ti
 - The language toggle changes app chrome only. It never translates Task content.
 - The public repository must contain only invented household content.
 
+## Design corrections
+
+A design review of `main` at commit `3984077` is complete. It found 52 items, of which 5 are blocking. Five are measured failures against the WCAG 2.2 Level AA commitment in `PRODUCT.md`.
+
+The next interface work is the corrective sequence in [`docs/design-review-work-order.md`](./design-review-work-order.md). That file holds the steps, the progress state, and the order rules. [`docs/design-review-2026-08-11.html`](./design-review-2026-08-11.html) holds the finding behind each step, with the measurements.
+
+Do the steps one at a time and in order. Step 2 rewrites almost every rule in `src/app/globals.css`, so no other step can run at the same time.
+
+Two decisions need the repository owner before step 6 and step 7. The work order records both, with a recommended answer for each.
+
 ## Items that need the repository owner
 
 - Confirm the iPhone repeat sign-in experience after seven days.
 - Decide which advanced organization controls are useful after several weekends of real use.
+- Decide what the wall-mounted tablet is for. This blocks step 6 of the design work order.
+- Decide whether archived content gets a restore view. This blocks step 7 of the design work order.
 
 ## Credentials
 

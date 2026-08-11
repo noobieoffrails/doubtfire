@@ -15,6 +15,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Read `CONTEXT.md` before you change the product. Use its domain terms in code, UI text, documentation, and commits.
 - Treat the decisions in `docs/adr/` as settled. Do not reopen a settled decision unless the repository owner asks you to do so.
 - Follow `docs/implementation-plan.md`. Do not put real household content in this public repository.
+- Read `docs/design-review-work-order.md` before you change the interface. It gives the corrective steps in order, and `docs/design-review-2026-08-11.html` gives the finding behind each one.
 
 ## Skills
 
