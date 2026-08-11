@@ -5,7 +5,6 @@ import {
   CalendarDays,
   ChevronDown,
   CircleUserRound,
-  Clock3,
   DoorOpen,
   Home,
   ListChecks,
@@ -124,10 +123,6 @@ export default async function SettingsPage() {
             <Home aria-hidden="true" strokeWidth={2.1} />
             <span>{copy.home}</span>
           </Link>
-          <span className="navItem disabled" aria-disabled="true">
-            <Clock3 aria-hidden="true" strokeWidth={2.1} />
-            <span>{copy.history}</span>
-          </span>
           <Link className="navItem active" href="/settings" aria-current="page">
             <Settings aria-hidden="true" strokeWidth={2.1} />
             <span>{copy.settings}</span>

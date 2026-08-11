@@ -33,9 +33,11 @@ export type RunCopy = {
   nextRoom: string;
   noDueTasks: string;
   roomProgress: string;
+  rooms: string;
   roomsInRun: string;
   runChangeError: string;
   runCompleteDescription: string;
+  runNavigation: string;
   taskList: string;
   tasksDone: string;
   undo: string;
@@ -97,6 +99,14 @@ function RunTaskControl({
         {!roomName && task.note ? <span>{task.note}</span> : null}
       </span>
     </button>
+  );
+}
+
+function RunAlert({ message }: { message: string | null }) {
+  return (
+    <p className="runError" role="alert">
+      {message ?? ""}
+    </p>
   );
 }
 
@@ -224,7 +234,7 @@ export function RunFlow({ initialRun, copy }: { initialRun: RunView; copy: RunCo
               </button>
             </div>
           ) : null}
-          {error ? <p className="runError">{error}</p> : null}
+          <RunAlert message={error} />
         </section>
       </main>
     );
@@ -237,14 +247,14 @@ export function RunFlow({ initialRun, copy }: { initialRun: RunView; copy: RunCo
     return (
       <main className="runCanvas">
         <section className="runSurface" aria-labelledby="room-title">
-          <header className="runHeader">
+          <nav className="runHeader" aria-label={copy.runNavigation}>
             <button className="iconButton" type="button" onClick={() => setActiveRoomId(null)}>
               <ArrowLeft aria-hidden="true" />
               <span className="srOnly">{copy.backToRooms}</span>
             </button>
             <span className="runRoutineName">{run.routine.name}</span>
             <span className="runCount">{copy.roomProgress.replace("{count}", String(activeRoom.tickedCount))}</span>
-          </header>
+          </nav>
 
           <section className="roomTaskSection">
             <div className="roomTaskHeading">
@@ -258,7 +268,7 @@ export function RunFlow({ initialRun, copy }: { initialRun: RunView; copy: RunCo
                 </li>
               ))}
             </ul>
-            {error ? <p className="runError">{error}</p> : null}
+            <RunAlert message={error} />
             <Button
               className="roomDoneButton"
               type="button"
@@ -276,14 +286,14 @@ export function RunFlow({ initialRun, copy }: { initialRun: RunView; copy: RunCo
   return (
     <main className="runCanvas">
       <section className="runSurface" aria-labelledby="run-title">
-        <header className="runHeader">
+        <nav className="runHeader" aria-label={copy.runNavigation}>
           <Link className="iconButton" href="/">
             <ArrowLeft aria-hidden="true" />
             <span className="srOnly">{copy.backHome}</span>
           </Link>
           <span className="runRoutineName">{run.routine.name}</span>
           <span className="runCount">{copy.tasksDone.replace("{count}", String(run.tickedCount))}</span>
-        </header>
+        </nav>
 
         <section className="runOverview">
           <div className="runOverviewHeading">
@@ -292,49 +302,59 @@ export function RunFlow({ initialRun, copy }: { initialRun: RunView; copy: RunCo
           </div>
 
           {run.rooms.length ? (
-            <ul className="runRoomGrid">
-              {run.rooms.map((room, index) => (
-                <li key={room.id}>
-                  <button
-                    className={`runRoomIsland roomTone${index % 3}`}
-                    type="button"
-                    onClick={() => setActiveRoomId(room.id)}
-                  >
-                    <span>{room.name}</span>
-                    <small>{copy.roomProgress.replace("{count}", String(room.tickedCount))}</small>
-                    <ChevronRight aria-hidden="true" />
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <section aria-labelledby="run-rooms-title">
+              <h2 className="srOnly" id="run-rooms-title">
+                {copy.rooms}
+              </h2>
+              <ul className="runRoomGrid">
+                {run.rooms.map((room, index) => (
+                  <li key={room.id}>
+                    <button
+                      className={`runRoomIsland roomTone${index % 3}`}
+                      type="button"
+                      onClick={() => setActiveRoomId(room.id)}
+                    >
+                      <span>{room.name}</span>
+                      <small>{copy.roomProgress.replace("{count}", String(room.tickedCount))}</small>
+                      <ChevronRight aria-hidden="true" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
           ) : (
             <p className="runEmptyState">{copy.noDueTasks}</p>
           )}
 
           {run.rooms.length ? (
-            <details className="allTasksDisclosure">
-              <summary>
-                <ListChecks aria-hidden="true" />
+            <section aria-labelledby="all-tasks-title">
+              <h2 className="srOnly" id="all-tasks-title">
                 {copy.allTasks}
-                <ChevronRight className="summaryChevron" aria-hidden="true" />
-              </summary>
-              <ul>
-                {run.rooms.flatMap((room) =>
-                  room.tasks.map((task) => (
-                    <li key={task.id}>
-                      <RunTaskControl
-                        task={task}
-                        roomName={room.name}
-                        onChange={changeTick}
-                      />
-                    </li>
-                  )),
-                )}
-              </ul>
-            </details>
+              </h2>
+              <details className="allTasksDisclosure">
+                <summary>
+                  <ListChecks aria-hidden="true" />
+                  {copy.allTasks}
+                  <ChevronRight className="summaryChevron" aria-hidden="true" />
+                </summary>
+                <ul>
+                  {run.rooms.flatMap((room) =>
+                    room.tasks.map((task) => (
+                      <li key={task.id}>
+                        <RunTaskControl
+                          task={task}
+                          roomName={room.name}
+                          onChange={changeTick}
+                        />
+                      </li>
+                    )),
+                  )}
+                </ul>
+              </details>
+            </section>
           ) : null}
 
-          {error ? <p className="runError">{error}</p> : null}
+          <RunAlert message={error} />
           <Button className="markDoneButton" type="button" disabled={isClosing} onClick={closeRun}>
             <CheckCircle2 aria-hidden="true" />
             {isClosing ? copy.markingAsDone : copy.markAsDone}

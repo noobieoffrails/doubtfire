@@ -98,16 +98,15 @@
   --ink-soft: #56628b;
   --ink-subtle: #6c78a0;
   --ink-secondary: #42547f;
+  --control-border: #7d849e;
   --ink-alpha-7: rgb(16 24 77 / 7%);
   --ink-alpha-8: rgb(16 24 77 / 8%);
   --ink-alpha-9: rgb(16 24 77 / 9%);
   --ink-alpha-10: rgb(16 24 77 / 10%);
   --ink-alpha-12: rgb(16 24 77 / 12%);
-  --ink-alpha-18: rgb(16 24 77 / 18%);
   --cobalt: #075cf5;
   --cobalt-deep: #0047d7;
   --cobalt-soft: #456fb7;
-  --cobalt-alpha-42: rgb(7 92 245 / 42%);
   --sky: #e3f3ff;
   --sky-strong: #9ed8ff;
   --mint: #e5f7ef;
@@ -217,7 +216,11 @@ textarea {
 }
 
 .button:disabled {
+  background: var(--ink-alpha-9);
+  box-shadow: none;
+  color: var(--ink-secondary);
   cursor: not-allowed;
+  transform: none;
 }
 
 input,
@@ -269,24 +272,32 @@ textarea:focus-visible {
 
 .appHeader {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-2);
   min-height: var(--space-16);
   padding: max(var(--space-4), env(safe-area-inset-top)) var(--space-5) var(--space-2);
 }
 
 .wordmark {
+  min-width: 0;
+  overflow: hidden;
   color: var(--ink);
   font-size: var(--text-2xl);
   font-weight: var(--weight-display);
   letter-spacing: var(--tracking-tight);
   text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .headerActions {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   gap: var(--space-2);
+  margin-left: auto;
 }
 
 .languageToggle,
@@ -302,8 +313,8 @@ textarea:focus-visible {
 
 .languageToggle {
   gap: var(--space-2);
-  min-width: var(--space-20);
   border-radius: var(--radius-pill);
+  padding-inline: var(--space-3);
   color: var(--ink);
   cursor: pointer;
   font-size: var(--text-sm);
@@ -391,12 +402,6 @@ textarea:focus-visible {
   color: var(--white);
   font-weight: var(--weight-strong);
   text-decoration: none;
-}
-
-.startButton:disabled {
-  background: var(--cobalt-soft);
-  box-shadow: none;
-  color: var(--white);
 }
 
 .coralDot {
@@ -689,7 +694,7 @@ textarea:focus-visible {
 
 .runCount {
   color: var(--cobalt);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   font-variant-numeric: tabular-nums;
   font-weight: var(--weight-display);
 }
@@ -926,6 +931,11 @@ textarea:focus-visible {
   font-weight: var(--weight-strong);
 }
 
+.runError:empty {
+  margin: 0;
+  padding: 0;
+}
+
 .roomTaskHeading {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -1052,7 +1062,7 @@ textarea:focus-visible {
   bottom: 0;
   left: 0;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   min-height: calc(var(--space-20) + env(safe-area-inset-bottom));
   padding: var(--space-2) var(--space-3) max(var(--space-2), env(safe-area-inset-bottom));
   border-top: var(--stroke-thin) solid var(--ink-alpha-8);
@@ -1093,10 +1103,6 @@ textarea:focus-visible {
   border-radius: var(--radius-pill);
   background: var(--cobalt);
   content: "";
-}
-
-.navItem.disabled {
-  cursor: not-allowed;
 }
 
 .signInPage {
@@ -1276,6 +1282,8 @@ textarea:focus-visible {
 
 .settingsHeaderStart {
   display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
   align-items: center;
   gap: var(--space-3);
 }
@@ -1482,7 +1490,7 @@ details[open] > summary .summaryChevron {
 .formField textarea {
   width: 100%;
   min-height: var(--space-12);
-  border: var(--stroke-thin) solid var(--ink-alpha-18);
+  border: var(--stroke-thin) solid var(--control-border);
   border-radius: var(--radius-control);
   padding: var(--space-3) var(--space-3);
   background: var(--white);
@@ -1500,7 +1508,7 @@ details[open] > summary .summaryChevron {
 .formField input:hover,
 .formField select:hover,
 .formField textarea:hover {
-  border-color: var(--cobalt-alpha-42);
+  border-color: var(--cobalt-soft);
 }
 
 .formFooter {
