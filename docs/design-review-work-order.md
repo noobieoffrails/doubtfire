@@ -4,6 +4,18 @@ This is the entry point for the design corrections. Start here, not in the repor
 
 The findings are in [`design-review-2026-08-11.html`](./design-review-2026-08-11.html). Open it and read the steps you are about to do. Each finding has a stable ID, so `F1` and `A2` in this file are anchors in that report.
 
+## Before you change a file
+
+Tell the repository owner what you are about to do and wait for the answer. Give five items and keep it short:
+
+1. The step number you take, and why that step.
+2. The finding IDs it covers.
+3. The name of the worktree and the branch you create.
+4. The skills you use.
+5. What makes you stop and ask a question.
+
+Also name the files you will **not** change in this step. This is the item that shows whether you read the order rules.
+
 ## How to use this file
 
 1. Take the **first step that is not `done`** in the table below.
