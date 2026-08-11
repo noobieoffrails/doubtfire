@@ -21,6 +21,14 @@
   --weight-body: 450;
   --weight-strong: 700;
   --weight-display: 780;
+  --tracking-snug: -0.025em;
+  --tracking-tight: -0.035em;
+  --tracking-display: -0.04em;
+  --underline-offset: 0.2em;
+  --measure-display: 8ch;
+  --measure-heading: 12ch;
+  --measure-copy: 60ch;
+  --message-line-height: 1.4em;
   --radius-sm: 12px;
   --radius-control: 14px;
   --radius-md: 16px;
@@ -51,8 +59,8 @@
   --stroke-focus: 3px;
   --duration-fast: 150ms;
   --duration-standard: 180ms;
-  --duration-rooms-enter: 520ms;
-  --duration-care-enter: 700ms;
+  --duration-rooms-enter: 420ms;
+  --duration-care-enter: 480ms;
   --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
   --blur-soft: 3px;
   --blur-panel: 14px;
@@ -60,14 +68,27 @@
   --size-routine: 7rem;
   --size-routine-wide: 8rem;
   --size-room-wide: 9rem;
+  --size-sign-in-glow-small: 11rem;
   --size-action: 12rem;
   --size-action-wide: 13rem;
+  --size-care-wide: 13rem;
+  --size-sign-in-glow-large: 13rem;
   --size-welcome: 14rem;
+  --size-welcome-copy: 16rem;
+  --size-completion-glow-small: 17rem;
+  --size-completion-glow-large: 19rem;
   --size-auth-intro: 21rem;
   --size-settings-column: 21rem;
+  --size-background-glow-small: 24rem;
+  --size-background-glow-medium: 25rem;
   --size-toast: 26rem;
+  --size-sign-in-column: 26rem;
+  --size-clerk-card: 28rem;
+  --size-background-glow-large: 28rem;
+  --size-sign-in-copy: 30rem;
   --size-completion: 35rem;
   --size-run-tall: 36rem;
+  --size-privacy-content: 44rem;
   --size-app-height: 51rem;
   --size-content: 52rem;
   --size-settings: 58rem;
@@ -229,8 +250,8 @@ textarea:focus-visible {
 @media (min-width: 48rem) {
   body {
     background:
-      radial-gradient(circle at 10% 5%, var(--sky-glow), transparent 28rem),
-      radial-gradient(circle at 92% 14%, var(--lilac-glow), transparent 24rem),
+      radial-gradient(circle at 10% 5%, var(--sky-glow), transparent var(--size-background-glow-large)),
+      radial-gradient(circle at 92% 14%, var(--lilac-glow), transparent var(--size-background-glow-small)),
       var(--ice);
   }
 }
@@ -258,7 +279,7 @@ textarea:focus-visible {
   color: var(--ink);
   font-size: var(--text-2xl);
   font-weight: var(--weight-display);
-  letter-spacing: -0.035em;
+  letter-spacing: var(--tracking-tight);
   text-decoration: none;
 }
 
@@ -328,18 +349,18 @@ textarea:focus-visible {
 }
 
 .welcome h1 {
-  max-width: 7.8ch;
+  max-width: var(--measure-display);
   margin: 0;
   color: var(--ink);
   font-size: var(--text-5xl);
   font-weight: var(--weight-display);
-  letter-spacing: -0.04em;
+  letter-spacing: var(--tracking-display);
   line-height: 0.98;
   text-wrap: balance;
 }
 
 .welcome p {
-  max-width: 16rem;
+  max-width: var(--size-welcome-copy);
   margin: var(--space-2) 0 0;
   color: var(--ink-soft);
   font-size: var(--text-base);
@@ -423,7 +444,7 @@ textarea:focus-visible {
   color: var(--ink);
   font-size: var(--text-3xl);
   font-weight: var(--weight-display);
-  letter-spacing: -0.035em;
+  letter-spacing: var(--tracking-tight);
   line-height: 1.05;
 }
 
@@ -455,7 +476,7 @@ textarea:focus-visible {
   margin-top: var(--space-2);
   color: var(--cobalt);
   font-weight: var(--weight-display);
-  text-underline-offset: 0.22em;
+  text-underline-offset: var(--underline-offset);
 }
 
 .routineIsland {
@@ -473,7 +494,7 @@ textarea:focus-visible {
   cursor: pointer;
   font-size: var(--text-xl);
   font-weight: var(--weight-display);
-  letter-spacing: -0.025em;
+  letter-spacing: var(--tracking-snug);
   text-align: left;
   transition: box-shadow var(--duration-standard) var(--ease-settle), transform var(--duration-standard) var(--ease-settle);
 }
@@ -689,7 +710,7 @@ textarea:focus-visible {
   color: var(--ink);
   font-size: var(--text-5xl);
   font-weight: var(--weight-display);
-  letter-spacing: -0.04em;
+  letter-spacing: var(--tracking-display);
   line-height: 0.98;
   overflow-wrap: anywhere;
   text-wrap: balance;
@@ -738,7 +759,7 @@ textarea:focus-visible {
   overflow-wrap: anywhere;
   font-size: var(--text-xl);
   font-weight: var(--weight-display);
-  letter-spacing: -0.025em;
+  letter-spacing: var(--tracking-snug);
 }
 
 .runRoomIsland > small {
@@ -927,8 +948,8 @@ textarea:focus-visible {
   padding: var(--space-6);
   overflow: hidden;
   background:
-    radial-gradient(circle at 12% 16%, var(--sky-strong), transparent 17rem),
-    radial-gradient(circle at 88% 82%, var(--mint-strong), transparent 19rem),
+    radial-gradient(circle at 12% 16%, var(--sky-strong), transparent var(--size-completion-glow-small)),
+    radial-gradient(circle at 88% 82%, var(--mint-strong), transparent var(--size-completion-glow-large)),
     var(--lilac);
 }
 
@@ -1092,8 +1113,8 @@ textarea:focus-visible {
   padding: max(var(--space-6), env(safe-area-inset-top)) var(--space-6) var(--space-12);
   overflow: hidden;
   background:
-    radial-gradient(circle at 92% 24%, var(--lilac-glow-strong), transparent 11rem),
-    radial-gradient(circle at 62% 90%, var(--mint-glow), transparent 13rem),
+    radial-gradient(circle at 92% 24%, var(--lilac-glow-strong), transparent var(--size-sign-in-glow-small)),
+    radial-gradient(circle at 62% 90%, var(--mint-glow), transparent var(--size-sign-in-glow-large)),
     var(--sky);
 }
 
@@ -1104,7 +1125,7 @@ textarea:focus-visible {
 }
 
 .signInCopy {
-  max-width: 31rem;
+  max-width: var(--size-sign-in-copy);
 }
 
 .signInMark {
@@ -1124,12 +1145,12 @@ textarea:focus-visible {
   color: var(--ink);
   font-size: var(--text-5xl);
   font-weight: var(--weight-display);
-  letter-spacing: -0.04em;
+  letter-spacing: var(--tracking-display);
   line-height: 0.98;
 }
 
 .signInCopy p {
-  max-width: 30rem;
+  max-width: var(--size-sign-in-copy);
   margin: var(--space-4) 0 0;
   color: var(--ink-soft);
   font-size: var(--text-base);
@@ -1148,7 +1169,7 @@ textarea:focus-visible {
   color: var(--cobalt);
   font-size: var(--text-sm);
   font-weight: var(--weight-strong);
-  text-underline-offset: 0.2em;
+  text-underline-offset: var(--underline-offset);
 }
 
 .privacyPage {
@@ -1164,7 +1185,7 @@ textarea:focus-visible {
 }
 
 .privacyContent {
-  width: min(100%, 44rem);
+  width: min(100%, var(--size-privacy-content));
   margin: clamp(var(--space-12), 9vw, var(--space-20)) auto 0;
   padding: clamp(var(--space-6), 6vw, var(--space-12));
   border-radius: var(--radius-xl);
@@ -1176,7 +1197,7 @@ textarea:focus-visible {
   margin: 0 0 var(--space-6);
   color: var(--ink);
   font-size: var(--text-5xl);
-  letter-spacing: -0.04em;
+  letter-spacing: var(--tracking-display);
   line-height: 1;
 }
 
@@ -1199,7 +1220,7 @@ textarea:focus-visible {
 
 .clerkRoot,
 .clerkCardBox {
-  width: min(100%, 28rem);
+  width: min(100%, var(--size-clerk-card));
 }
 
 .clerkCardBox,
@@ -1276,18 +1297,18 @@ textarea:focus-visible {
 }
 
 .settingsIntro h1 {
-  max-width: 12ch;
+  max-width: var(--measure-heading);
   margin: 0;
   color: var(--ink);
   font-size: var(--text-4xl);
   font-weight: var(--weight-display);
-  letter-spacing: -0.04em;
+  letter-spacing: var(--tracking-display);
   line-height: 1;
   text-wrap: balance;
 }
 
 .settingsIntro p {
-  max-width: 58ch;
+  max-width: var(--measure-copy);
   margin: var(--space-3) 0 0;
   color: var(--ink-secondary);
   line-height: 1.55;
@@ -1330,12 +1351,12 @@ textarea:focus-visible {
   color: var(--ink);
   font-size: var(--text-3xl);
   font-weight: var(--weight-display);
-  letter-spacing: -0.03em;
+  letter-spacing: var(--tracking-tight);
   line-height: 1.08;
 }
 
 .managerHeading p {
-  max-width: 65ch;
+  max-width: var(--measure-copy);
   margin: var(--space-2) 0 0;
   color: var(--ink-soft);
   line-height: 1.5;
@@ -1477,7 +1498,7 @@ details[open] > summary .summaryChevron {
 }
 
 .formMessage {
-  min-height: 1.4em;
+  min-height: var(--message-line-height);
   margin: 0;
   color: var(--ink-soft);
   font-size: var(--text-sm);
@@ -1493,7 +1514,7 @@ details[open] > summary .summaryChevron {
 }
 
 .emptyState {
-  max-width: 65ch;
+  max-width: var(--measure-copy);
   margin: var(--space-3) var(--space-1) 0;
   color: var(--ink-soft);
   line-height: 1.55;
@@ -1587,7 +1608,7 @@ details[open] > summary .summaryChevron {
 }
 
 .archiveDisclosure > p {
-  max-width: 60ch;
+  max-width: var(--measure-copy);
   margin: var(--space-1) 0 var(--space-3);
   color: var(--ink-soft);
   font-size: var(--text-sm);
@@ -1672,7 +1693,7 @@ details[open] > summary .summaryChevron {
   }
 
   .welcome h1 {
-    max-width: 8ch;
+    max-width: var(--measure-display);
     font-size: var(--text-5xl);
   }
 
@@ -1693,7 +1714,7 @@ details[open] > summary .summaryChevron {
   }
 
   .careIsland {
-    min-height: var(--size-action-wide);
+    min-height: var(--size-care-wide);
     margin: 0 var(--space-6) var(--space-4) 0;
     border-radius: var(--radius-care-wide);
   }
@@ -1742,8 +1763,8 @@ details[open] > summary .summaryChevron {
   .settingsCanvas {
     padding: var(--space-6);
     background:
-      radial-gradient(circle at 8% 8%, var(--sky-glow-soft), transparent 28rem),
-      radial-gradient(circle at 94% 22%, var(--lilac-glow-soft), transparent 25rem),
+      radial-gradient(circle at 8% 8%, var(--sky-glow-soft), transparent var(--size-background-glow-large)),
+      radial-gradient(circle at 94% 22%, var(--lilac-glow-soft), transparent var(--size-background-glow-medium)),
       var(--ice);
   }
 
@@ -1823,7 +1844,7 @@ details[open] > summary .summaryChevron {
   }
 
   .signInPage {
-    grid-template-columns: minmax(0, 1.1fr) minmax(var(--size-toast), 0.9fr);
+    grid-template-columns: minmax(0, 1.1fr) minmax(var(--size-sign-in-column), 0.9fr);
   }
 
   .signInIntro {
@@ -1840,8 +1861,8 @@ details[open] > summary .summaryChevron {
     justify-items: center;
     padding: var(--space-6);
     background:
-      radial-gradient(circle at 8% 8%, var(--sky-glow-soft), transparent 28rem),
-      radial-gradient(circle at 94% 22%, var(--lilac-glow-soft), transparent 25rem),
+      radial-gradient(circle at 8% 8%, var(--sky-glow-soft), transparent var(--size-background-glow-large)),
+      radial-gradient(circle at 94% 22%, var(--lilac-glow-soft), transparent var(--size-background-glow-medium)),
       var(--ice);
   }
 
