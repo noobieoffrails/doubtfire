@@ -10,7 +10,11 @@ import { getDatabase } from "@/db/client";
 import { dictionaries } from "@/i18n/config";
 import { getRequestLocale } from "@/i18n/server";
 import { allowsLocalPreview } from "@/lib/local-preview";
-import { createRunManager, type RunView } from "@/runs/run-manager";
+import {
+  createRunManager,
+  RunOperationError,
+  type RunView,
+} from "@/runs/run-manager";
 
 const idSchema = z.string().uuid();
 
@@ -42,8 +46,12 @@ export async function startRunAction(
 
   try {
     run = await createRunManager(getDatabase()).start(routineId.data);
-  } catch {
-    return { status: "error", message: copy.runStartError };
+  } catch (error) {
+    if (error instanceof RunOperationError) {
+      return { status: "error", message: copy.runStartError };
+    }
+
+    throw error;
   }
 
   refreshRunPaths(run.id);
@@ -103,8 +111,12 @@ export async function reopenRunFromHomeAction(
 
   try {
     run = await createRunManager(getDatabase()).reopen(runId.data);
-  } catch {
-    return { status: "error", message: copy.runReopenError };
+  } catch (error) {
+    if (error instanceof RunOperationError) {
+      return { status: "error", message: copy.runReopenError };
+    }
+
+    throw error;
   }
 
   refreshRunPaths(run.id);

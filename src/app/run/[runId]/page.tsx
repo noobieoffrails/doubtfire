@@ -7,7 +7,7 @@ import { getDatabase } from "@/db/client";
 import { dictionaries } from "@/i18n/config";
 import { getRequestLocale } from "@/i18n/server";
 import { allowsLocalPreview } from "@/lib/local-preview";
-import { createRunManager } from "@/runs/run-manager";
+import { createRunManager, RunNotFoundError } from "@/runs/run-manager";
 
 const runIdSchema = z.string().uuid();
 
@@ -33,7 +33,7 @@ export default async function RunPage({
   try {
     run = await createRunManager(getDatabase()).get(runId);
   } catch (error) {
-    if (error instanceof Error && error.message === "Run not found.") {
+    if (error instanceof RunNotFoundError) {
       notFound();
     }
 

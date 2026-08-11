@@ -10,10 +10,10 @@ import { dictionaries } from "@/i18n/config";
 
 export default function ErrorPage({
   error,
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }) {
   const locale = useLocale();
   const copy = dictionaries[locale];
@@ -32,7 +32,7 @@ export default function ErrorPage({
           <h1 id="error-heading">{copy.errorHeading}</h1>
           <p>{copy.errorDescription}</p>
           <div className="mt-6 flex flex-wrap items-center gap-4">
-            <Button type="button" onClick={reset}>
+            <Button type="button" onClick={retry}>
               {copy.tryAgain}
             </Button>
             <Link className="font-bold text-[var(--cobalt)]" href="/">
