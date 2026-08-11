@@ -31,7 +31,7 @@ Also name the files you will **not** change in this step. This is the item that 
 | Step | Status | Findings | Work |
 | --- | --- | --- | --- |
 | 1 | todo | T1, S2, S1 | Acknowledge the primary action within 100 ms, add error and not-found boundaries, and give the Home Run actions an error path. |
-| 2 | todo | F1, F2, X1 | Add the token layer, replace every literal value with the nearest token, and remove the dead CSS and the dead `phaseNote` key. |
+| 2 | done ([#12](https://github.com/noobieoffrails/doubtfire/pull/12)) | F1, F2, X1 | Add the token layer, replace every literal value with the nearest token, and remove the dead CSS and the dead `phaseNote` key. |
 | 3 | todo | A1, A2, A3, A4, A5, A7, A9 | Correct the measured accessibility failures: control borders, reflow at 200 % zoom, status messages, type below 12 px, disabled buttons, the disabled navigation item, and the thin semantic structure. |
 | 4 | todo | C1, C3, N1, N2 | Correct the plural defects, remove the duplicated strings, and make the page name match the link that leads to it. |
 | 5 | todo | L3, A6, H1, S4, S6, H5, L4, H10 | Rebuild the Home and Run overview flow. Move the primary action below the Routine list, which also corrects the tab order. |
