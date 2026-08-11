@@ -8,7 +8,7 @@ web
 
 ## Stack
 
-Next.js App Router in a persistent Railway container, with Postgres, Drizzle ORM, Clerk, Tailwind CSS, and shadcn/ui.
+Next.js App Router in a persistent Railway container, with Postgres, Drizzle ORM, Clerk, and hand-written CSS that uses a token layer.
 
 ## Users
 

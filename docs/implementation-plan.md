@@ -15,7 +15,7 @@ Four decisions are recorded in [docs/adr](./adr) and are settled. Each has a "do
 | Database | Postgres on Railway, Drizzle ORM |
 | Real-time | SSE route handler, driven by Postgres `LISTEN/NOTIFY` |
 | Auth | Clerk Restricted mode, one predefined account, exact user ID check |
-| Styling | Tailwind + shadcn/ui |
+| Styling | Hand-written CSS with a token layer in `src/app/globals.css` |
 | Drag & drop | `dnd-kit` — pointer + touch sensors; the HTML5 drag API does not work on mobile |
 | PWA | Manifest, icons, `theme-color`, `display: standalone`. No service worker |
 
