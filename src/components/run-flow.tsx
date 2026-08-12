@@ -124,10 +124,10 @@ function withTick(
 
 function groupTasks(tasks: RunTask[]): TaskGroup[] {
   return tasks.reduce<TaskGroup[]>((groups, task) => {
-    const currentGroup = groups.at(-1);
+    const existingGroup = groups.find((group) => group.label === task.groupLabel);
 
-    if (currentGroup?.label === task.groupLabel) {
-      currentGroup.tasks.push(task);
+    if (existingGroup) {
+      existingGroup.tasks.push(task);
       return groups;
     }
 

@@ -735,6 +735,10 @@ textarea:focus-visible {
   text-wrap: balance;
 }
 
+.completionIsland h1 {
+  font-size: var(--text-5xl);
+}
+
 .runViewChoices {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

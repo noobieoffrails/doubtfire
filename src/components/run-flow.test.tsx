@@ -98,11 +98,19 @@ const run = {
           ticked: false,
         },
         {
+          id: "e40be418-c668-4305-b7d3-86952c0565fe",
+          text: "Task without a Group",
+          note: null,
+          groupLabel: null,
+          sortOrder: 20,
+          ticked: false,
+        },
+        {
           id: "56c8cbe9-9c32-47b5-8060-07f7367e8e71",
           text: "Task Two",
           note: null,
           groupLabel: "Group One",
-          sortOrder: 20,
+          sortOrder: 30,
           ticked: false,
         },
       ],
@@ -188,6 +196,11 @@ describe("RunFlow", () => {
 
     expect(descriptionId).toBeTruthy();
     expect(document.getElementById(descriptionId ?? "")?.textContent).toBe("Use the soft cloth.");
+
+    const noteIds = [...document.querySelectorAll('[id^="task-note-"]')].map(
+      (element) => element.id,
+    );
+    expect(new Set(noteIds).size).toBe(noteIds.length);
   });
 
   it("puts a failed Tick and its retry on the Task row", async () => {
@@ -200,7 +213,10 @@ describe("RunFlow", () => {
           {
             ...run.rooms[0],
             tickedCount: 1,
-            tasks: [{ ...run.rooms[0].tasks[0], ticked: true }, run.rooms[0].tasks[1]],
+            tasks: [
+              { ...run.rooms[0].tasks[0], ticked: true },
+              ...run.rooms[0].tasks.slice(1),
+            ],
           },
           run.rooms[1],
         ],
