@@ -2,6 +2,11 @@ export const locales = ["en", "fi"] as const;
 
 export type Locale = (typeof locales)[number];
 
+export type PluralForms = Readonly<{
+  one: string;
+  other: string;
+}>;
+
 export function isLocale(value: unknown): value is Locale {
   return typeof value === "string" && locales.includes(value as Locale);
 }
@@ -44,7 +49,6 @@ export const dictionaries = {
     doneWithRoom: "Done with this Room",
     errorDescription: "Doubtfire could not load this page. Try again or return home.",
     errorHeading: "Something went wrong.",
-    everyDays: "Every {days} days",
     fortnightly: "Fortnightly",
     greeting: "Ready when you are.",
     groupOptional: "Group (optional)",
@@ -55,10 +59,8 @@ export const dictionaries = {
     lastRun: "Last Run",
     markAsDone: "Mark as done",
     markingAsDone: "Marking as done…",
-    manageContent: "Manage cleaning content",
-    manageContentDescription:
+    settingsDescription:
       "Add the structure first. You can then enter each Task in the right Routine and Room.",
-    manageRoutines: "Manage Routines",
     noIncludedRoutine: "Does not include another Routine",
     notFoundDescription: "The page might have moved, or this Run is no longer available.",
     notFoundHeading: "We could not find that page.",
@@ -73,9 +75,9 @@ export const dictionaries = {
     quarterly: "Quarterly",
     reopenRun: "Reopen Run",
     reopeningRun: "Reopening Run…",
+    runClosed: "Run closed",
     room: "Room",
     roomName: "Room name",
-    roomProgress: "{count} done",
     rooms: "Rooms",
     roomsInRun: "Choose a Room",
     roomsDescription:
@@ -86,6 +88,9 @@ export const dictionaries = {
     routinesDescription:
       "A Routine gives its Tasks a Cadence and can include another Routine.",
     saveChanges: "Save changes",
+    saveRoom: "Save room",
+    saveRoutine: "Save routine",
+    saveTask: "Save task",
     saving: "Saving…",
     settings: "Settings",
     signInDescription: "Sign in to open your household cleaning routines.",
@@ -106,7 +111,6 @@ export const dictionaries = {
     tasks: "Tasks",
     tasksDescription:
       "A Task is the only checkable thing. A Group is an optional label for related Tasks.",
-    tasksDone: "{count} Tasks done",
     undo: "Undo",
     tryAgain: "Try again",
     weekly: "Weekly",
@@ -147,7 +151,6 @@ export const dictionaries = {
     errorDescription:
       "Doubtfire ei voinut ladata tätä sivua. Yritä uudelleen tai palaa etusivulle.",
     errorHeading: "Jokin meni vikaan.",
-    everyDays: "Joka {days}. päivä",
     fortnightly: "Joka toinen viikko",
     greeting: "Aloita, kun olet valmis.",
     groupOptional: "Ryhmä (valinnainen)",
@@ -158,10 +161,8 @@ export const dictionaries = {
     lastRun: "Edellinen siivouskerta",
     markAsDone: "Merkitse valmiiksi",
     markingAsDone: "Merkitään valmiiksi…",
-    manageContent: "Hallitse siivoussisältöä",
-    manageContentDescription:
+    settingsDescription:
       "Lisää ensin rakenne. Sen jälkeen voit lisätä jokaisen tehtävän oikeaan rutiiniin ja huoneeseen.",
-    manageRoutines: "Hallitse rutiineja",
     noIncludedRoutine: "Ei sisällä toista rutiinia",
     notFoundDescription:
       "Sivu on ehkä siirretty tai tämä siivouskerta ei ole enää saatavilla.",
@@ -177,9 +178,9 @@ export const dictionaries = {
     quarterly: "Neljännesvuosittain",
     reopenRun: "Avaa siivouskerta uudelleen",
     reopeningRun: "Avataan siivouskertaa uudelleen…",
+    runClosed: "Siivouskerta suljettu",
     room: "Huone",
     roomName: "Huoneen nimi",
-    roomProgress: "{count} tehty",
     rooms: "Huoneet",
     roomsInRun: "Valitse huone",
     roomsDescription:
@@ -190,6 +191,9 @@ export const dictionaries = {
     routinesDescription:
       "Rutiini antaa tehtäville toistovälin ja voi sisältää toisen rutiinin.",
     saveChanges: "Tallenna muutokset",
+    saveRoom: "Tallenna huone",
+    saveRoutine: "Tallenna rutiini",
+    saveTask: "Tallenna tehtävä",
     saving: "Tallennetaan…",
     settings: "Asetukset",
     signInDescription: "Kirjaudu sisään ja avaa kodin siivousrutiinit.",
@@ -211,9 +215,31 @@ export const dictionaries = {
     tasks: "Tehtävät",
     tasksDescription:
       "Vain tehtävän voi merkitä tehdyksi. Ryhmä on valinnainen nimi samankaltaisille tehtäville.",
-    tasksDone: "{count} tehtävää tehty",
     undo: "Kumoa",
     tryAgain: "Yritä uudelleen",
     weekly: "Viikoittain",
   },
 } as const satisfies Record<Locale, Record<string, string>>;
+
+export const pluralDictionaries = {
+  en: {
+    everyDays: {
+      one: "Every day",
+      other: "Every {count} days",
+    },
+    tasksDone: {
+      one: "{count} Task done",
+      other: "{count} Tasks done",
+    },
+  },
+  fi: {
+    everyDays: {
+      one: "Joka päivä",
+      other: "Joka {count}. päivä",
+    },
+    tasksDone: {
+      one: "{count} tehtävä tehty",
+      other: "{count} tehtävää tehty",
+    },
+  },
+} as const satisfies Record<Locale, Record<string, PluralForms>>;

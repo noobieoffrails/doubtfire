@@ -19,7 +19,11 @@ import { ContentForm } from "@/components/content-form";
 import { LanguageToggle } from "@/components/language-toggle";
 import { createContentCatalog } from "@/content/content-catalog";
 import { getDatabase } from "@/db/client";
-import { dictionaries } from "@/i18n/config";
+import {
+  dictionaries,
+  type Locale,
+} from "@/i18n/config";
+import { formatPlural } from "@/i18n/plural";
 import { getRequestLocale } from "@/i18n/server";
 import { allowsLocalPreview } from "@/lib/local-preview";
 
@@ -35,9 +39,11 @@ import {
   updateTaskAction,
 } from "./actions";
 
-export const metadata: Metadata = {
-  title: "Settings",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getRequestLocale();
+
+  return { title: dictionaries[locale].settings };
+}
 
 export default async function SettingsPage() {
   const isLocalPreview = allowsLocalPreview();
@@ -95,8 +101,8 @@ export default async function SettingsPage() {
         <div className="settingsContent">
           <section className="settingsIntro">
             <div>
-              <h1 id="settings-title">{copy.manageContent}</h1>
-              <p>{copy.manageContentDescription}</p>
+              <h1 id="settings-title">{copy.settings}</h1>
+              <p>{copy.settingsDescription}</p>
             </div>
             <nav className="sectionLinks" aria-label={copy.contentSections}>
               <a href="#routines">{copy.routines}</a>
@@ -105,7 +111,11 @@ export default async function SettingsPage() {
             </nav>
           </section>
 
-          <RoutineManager copy={copy} routines={content.routines} />
+          <RoutineManager
+            copy={copy}
+            locale={locale}
+            routines={content.routines}
+          />
           <RoomManager copy={copy} rooms={content.rooms} />
           <TaskManager
             canCreateTask={canCreateTask}
@@ -165,7 +175,15 @@ function ManagerHeading({
   );
 }
 
-function RoutineManager({ copy, routines }: { copy: ContentCopy; routines: Routine[] }) {
+function RoutineManager({
+  copy,
+  locale,
+  routines,
+}: {
+  copy: ContentCopy;
+  locale: Locale;
+  routines: Routine[];
+}) {
   const routineNameById = new Map(routines.map((routine) => [routine.id, routine.name]));
 
   return (
@@ -186,7 +204,7 @@ function RoutineManager({ copy, routines }: { copy: ContentCopy; routines: Routi
         <ContentForm
           action={createRoutineAction}
           resetOnSuccess
-          submitLabel={copy.addRoutine}
+          submitLabel={copy.saveRoutine}
           submittingLabel={copy.saving}
         >
           <RoutineFields copy={copy} routines={routines} />
@@ -203,7 +221,11 @@ function RoutineManager({ copy, routines }: { copy: ContentCopy; routines: Routi
                   <span>
                     <strong>{routine.name}</strong>
                     <small>
-                      {copy.everyDays.replace("{days}", String(routine.cadenceDays))}
+                      {formatPlural(
+                        locale,
+                        "everyDays",
+                        routine.cadenceDays,
+                      )}
                       {routine.includesRoutineId
                         ? ` · ${copy.includesShort} ${routineNameById.get(routine.includesRoutineId)}`
                         : ""}
@@ -297,7 +319,7 @@ function RoomManager({ copy, rooms }: { copy: ContentCopy; rooms: Room[] }) {
         <ContentForm
           action={createRoomAction}
           resetOnSuccess
-          submitLabel={copy.addRoom}
+          submitLabel={copy.saveRoom}
           submittingLabel={copy.saving}
         >
           <label className="formField">
@@ -380,7 +402,7 @@ function TaskManager({
           <ContentForm
             action={createTaskAction}
             resetOnSuccess
-            submitLabel={copy.addTask}
+            submitLabel={copy.saveTask}
             submittingLabel={copy.saving}
           >
             <TaskFields copy={copy} rooms={rooms} routines={routines} />

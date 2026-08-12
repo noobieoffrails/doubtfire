@@ -1,4 +1,6 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { z } from "zod";
 
 import { requireAllowedUser } from "@/auth/server";
@@ -11,27 +13,21 @@ import { createRunManager, RunNotFoundError } from "@/runs/run-manager";
 
 const runIdSchema = z.string().uuid();
 
-export default async function RunPage({
-  params,
-}: {
+type RunPageProps = {
   params: Promise<{ runId: string }>;
-}) {
-  if (!allowsLocalPreview()) {
-    await requireAllowedUser();
-  }
+};
 
-  const { runId } = await params;
-
+const getRun = cache(async (runId: string) => {
   if (!runIdSchema.safeParse(runId).success) {
     notFound();
   }
 
-  const locale = await getRequestLocale();
-  const copy = dictionaries[locale];
-  let run;
+  if (!allowsLocalPreview()) {
+    await requireAllowedUser();
+  }
 
   try {
-    run = await createRunManager(getDatabase()).get(runId);
+    return await createRunManager(getDatabase()).get(runId);
   } catch (error) {
     if (error instanceof RunNotFoundError) {
       notFound();
@@ -39,10 +35,29 @@ export default async function RunPage({
 
     throw error;
   }
+});
+
+export async function generateMetadata({
+  params,
+}: RunPageProps): Promise<Metadata> {
+  const { runId } = await params;
+  const run = await getRun(runId);
+
+  return { title: run.routine.name };
+}
+
+export default async function RunPage({
+  params,
+}: RunPageProps) {
+  const { runId } = await params;
+  const locale = await getRequestLocale();
+  const copy = dictionaries[locale];
+  const run = await getRun(runId);
 
   return (
     <RunFlow
       initialRun={run}
+      locale={locale}
       copy={{
         allTasks: copy.allTasks,
         backHome: copy.backHome,
@@ -53,14 +68,13 @@ export default async function RunPage({
         markingAsDone: copy.markingAsDone,
         nextRoom: copy.nextRoom,
         noDueTasks: copy.noDueTasks,
-        roomProgress: copy.roomProgress,
         rooms: copy.rooms,
         roomsInRun: copy.roomsInRun,
         runChangeError: copy.runChangeError,
+        runClosed: copy.runClosed,
         runCompleteDescription: copy.runCompleteDescription,
         runNavigation: copy.runNavigation,
         taskList: copy.taskList,
-        tasksDone: copy.tasksDone,
         undo: copy.undo,
       }}
     />
