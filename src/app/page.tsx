@@ -97,15 +97,7 @@ export default async function HomePage() {
                 <Play aria-hidden="true" fill="currentColor" strokeWidth={2.2} />
                 {copy.continueCleaning}
               </Link>
-            ) : (
-              <StartRunForm
-                action={startRunAction}
-                disabled={content.routines.length === 0}
-                startLabel={copy.startCleaning}
-                startingLabel={copy.startingCleaning}
-              />
-            )}
-            <span className="coralDot" aria-hidden="true" />
+            ) : null}
           </div>
           <div className="careIsland" aria-hidden="true">
             <Image
@@ -116,79 +108,92 @@ export default async function HomePage() {
               priority
               className="careImage"
             />
+            <span className="coralDot" />
           </div>
         </section>
 
         <section className="routineSection" aria-labelledby="routine-title">
           <div className="sectionHeading">
-            <h2 id="routine-title">{copy.routines}</h2>
+            <h2 id="routine-title">
+              {openRun ? copy.currentRoutine : copy.routines}
+            </h2>
           </div>
-          {runState.resumableRun ? (
-            <div className="resumableRunIsland">
-              <span className="resumableRunIcon" aria-hidden="true">
-                <CheckCircle2 strokeWidth={2} />
-              </span>
-              <span>
-                <strong>{copy.lastRun}</strong>
-                <small>
-                  {formatPlural(
-                    locale,
-                    "tasksDone",
-                    runState.resumableRun.tickedCount,
-                  )}
-                </small>
-              </span>
-              <ReopenRunForm
-                action={reopenRunFromHomeAction}
-                reopenLabel={copy.reopenRun}
-                reopeningLabel={copy.reopeningRun}
-                runId={runState.resumableRun.id}
-              />
-            </div>
-          ) : null}
-          <ul
-            className="routineList"
-            role="radiogroup"
-            aria-labelledby="routine-title"
-          >
-            {content.routines.map((routine, index) => {
-              const style = routineStyles[index % routineStyles.length];
+          {openRun ? (
+            <p className="openRunSummary">{openRun.routine.name}</p>
+          ) : (
+            <>
+              {runState.resumableRun ? (
+                <div className="resumableRunIsland">
+                  <span className="resumableRunIcon" aria-hidden="true">
+                    <CheckCircle2 strokeWidth={2} />
+                  </span>
+                  <span>
+                    <strong>{copy.lastRun}</strong>
+                    <small>
+                      {formatPlural(
+                        locale,
+                        "tasksDone",
+                        runState.resumableRun.tickedCount,
+                      )}
+                    </small>
+                  </span>
+                  <ReopenRunForm
+                    action={reopenRunFromHomeAction}
+                    reopenLabel={copy.reopenRun}
+                    reopeningLabel={copy.reopeningRun}
+                    runId={runState.resumableRun.id}
+                  />
+                </div>
+              ) : null}
+              <ul
+                className="routineList"
+                role="radiogroup"
+                aria-labelledby="routine-title"
+              >
+                {content.routines.map((routine, index) => {
+                  const style = routineStyles[index % routineStyles.length];
 
-              return (
-                <li key={routine.id}>
-                  <label
-                    className={`routineIsland ${style.shape} ${openRun ? "inactive" : ""}`}
-                  >
-                    <input
-                      className="srOnly"
-                      type="radio"
-                      name="routineId"
-                      value={routine.id}
-                      form="start-run-form"
-                      defaultChecked={index === 0}
-                      disabled={Boolean(openRun)}
-                    />
-                    <span
-                      className={`routineIcon ${style.iconTone}`}
-                      aria-hidden="true"
-                    >
-                      <CalendarDays strokeWidth={2} />
-                    </span>
-                    <span>{routine.name}</span>
-                    <span className="islandLinework" aria-hidden="true">
-                      <RoutineArt variant={style.art} />
-                    </span>
-                  </label>
-                </li>
-              );
-            })}
-          </ul>
-          {content.routines.length === 0 ? (
-            <div className="homeEmptyState">
-              <p>{copy.noHomeRoutines}</p>
-              <Link href="/settings">{copy.settings}</Link>
-            </div>
-          ) : null}
+                  return (
+                    <li key={routine.id}>
+                      <label
+                        className={`routineIsland ${style.shape}`}
+                      >
+                        <input
+                          className="srOnly"
+                          type="radio"
+                          name="routineId"
+                          value={routine.id}
+                          form="start-run-form"
+                          defaultChecked={index === 0}
+                        />
+                        <span
+                          className={`routineIcon ${style.iconTone}`}
+                          aria-hidden="true"
+                        >
+                          <CalendarDays strokeWidth={2} />
+                        </span>
+                        <span>{routine.name}</span>
+                        <span className="islandLinework" aria-hidden="true">
+                          <RoutineArt variant={style.art} />
+                        </span>
+                      </label>
+                    </li>
+                  );
+                })}
+              </ul>
+              <StartRunForm
+                action={startRunAction}
+                disabled={content.routines.length === 0}
+                startLabel={copy.startCleaning}
+                startingLabel={copy.startingCleaning}
+              />
+              {content.routines.length === 0 ? (
+                <p className="startUnavailable">
+                  {copy.noHomeRoutines} <Link href="/settings">{copy.settings}</Link>
+                </p>
+              ) : null}
+            </>
+          )}
         </section>
 
         <nav className="bottomNav" aria-label={copy.primaryNavigation}>
