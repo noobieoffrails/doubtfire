@@ -49,7 +49,7 @@ function taskInput(formData: FormData): CreateTaskInput {
 
 async function runContentAction(
   operation: () => Promise<unknown>,
-  successMessage: "saved" | "archived" | "restored",
+  operationKind: keyof typeof contentOperationCopyKeys,
 ): Promise<ContentFormState> {
   if (!allowsLocalPreview()) {
     await requireAllowedUser();
@@ -65,24 +65,32 @@ async function runContentAction(
 
     return {
       status: "success",
-      message:
-        successMessage === "saved"
-          ? copy.contentSaved
-          : successMessage === "archived"
-            ? copy.contentArchived
-            : copy.contentRestored,
+      message: copy[contentOperationCopyKeys[operationKind].success],
     };
   } catch (error) {
     const message =
       error instanceof ContentRestoreBlockedError
         ? copy.contentRestoreBlocked
-        : successMessage === "restored"
-          ? copy.contentRestoreError
-          : copy.contentSaveError;
+        : copy[contentOperationCopyKeys[operationKind].error];
 
     return { status: "error", message };
   }
 }
+
+const contentOperationCopyKeys = {
+  archived: {
+    error: "contentSaveError",
+    success: "contentArchived",
+  },
+  restored: {
+    error: "contentRestoreError",
+    success: "contentRestored",
+  },
+  saved: {
+    error: "contentSaveError",
+    success: "contentSaved",
+  },
+} as const;
 
 export async function createRoutineAction(
   _state: ContentFormState,
