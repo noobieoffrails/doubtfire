@@ -10,14 +10,14 @@ tokenSource: "src/app/globals.css :root"
 
 This file describes the interface rules and the patterns that use them. It does not copy the token values.
 
-The `:root` block in `src/app/globals.css` is the source of truth for color, type, spacing, shape, motion, effects, and interface dimensions. Add or change a value there first. Application rules must use a token instead of a new literal value.
+The `:root` block in `src/app/globals.css` is the source of truth for color, type, spacing, shape, motion, effects, and interface dimensions. Add or change a value there first. Application CSS rules must use a token instead of a new literal value. Clerk's JavaScript appearance API cannot read CSS custom properties for all values, so the sign-in configuration mirrors the applicable color and radius tokens as literals. Keep that integration boundary synchronized with `:root`; it is not a second scale.
 
 The token families are:
 
 | Family | CSS custom properties | Purpose |
 | --- | --- | --- |
 | Spacing | `--space-*` | Gaps, padding, margins, and control height |
-| Type | `--text-*`, `--weight-*`, `--tracking-*`, `--measure-*` | Type hierarchy and readable line length |
+| Type | `--text-*`, `--weight-*`, `--tracking-*`, `--measure-*`, `--underline-offset`, `--message-line-height` | Type hierarchy, readable line length, and text details |
 | Shape | `--radius-*`, `--stroke-*` | Controls, islands, panels, and focus outlines |
 | Motion | `--duration-*`, `--ease-*` | Feedback and the care-image entrance |
 | Size | `--size-*`, `--blur-*` | Named component and layout dimensions |
@@ -53,7 +53,7 @@ Success and error colors have explicit state tokens. Error feedback can use the 
 
 The interface uses Manrope with a sans-serif fallback. Use the type tokens in `globals.css`; do not restate their values here.
 
-- Display type is for the Home greeting and completion message only.
+- Display type is for the short Home and sign-in greetings and the completion message only.
 - Headline type identifies a screen or major section.
 - Title type identifies strong choices such as Routines and Rooms.
 - Body type carries instructions, Task text, Notes, and form content.
@@ -90,6 +90,7 @@ At the wide breakpoint declared in `globals.css`, the application becomes a cont
 
 - Home becomes a two-column composition with the welcome and care image beside the Routine choices.
 - Run and Settings use the same contained surface and larger targets, text, gaps, and Room islands.
+- Settings shows its section links only in the wide layout. They are plain underlined in-page links, not another primary navigation.
 - Settings forms can use two columns, while wide fields span the full form.
 - The bottom navigation joins the Home or Settings panel flow instead of floating over it.
 
@@ -111,7 +112,7 @@ When no active Routine exists, keep the start action disabled and explain how to
 
 The Run header shows the wordmark, current Routine, and absolute Tasks-done count. The default overview is Rooms. Each Room is a broad navigable island with its name and its own count-up.
 
-A segmented choice switches between Rooms and all Tasks. The all-Tasks view is secondary and remembers the choice on the device. Keep `Mark as done` after the overview content. An empty Run uses a neutral empty state and still allows the Run to close.
+A segmented control gives Rooms and all Tasks equal weight. Rooms is the initial default, and the device remembers a later choice. Keep `Mark as done` after the overview content. An empty Run uses a neutral empty state and still allows the Run to close.
 
 ### Room Task view
 
@@ -190,7 +191,7 @@ Motion is short and functional. Do not animate core navigation or Task state in 
 - Keep focus visible with the global focus tokens.
 - Keep interactive targets usable with occupied hands on both supported device types.
 - Associate status and error text with live regions. Keep the Run alert mounted so repeated failures announce.
-- Put all interface copy in `src/i18n/config.ts` in English and Finnish. Content entered by the household is not translated.
+- Put shared interface copy in `src/i18n/config.ts` in English and Finnish. The self-contained cookie-information page keeps its bilingual legal copy beside the page. Content entered by the household is not translated.
 - Use the domain terms in `CONTEXT.md`. A Routine is not a checklist, a Room is not an area, and a Task is the only checkable thing.
 
 ## Maintenance checklist
