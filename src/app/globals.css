@@ -1164,6 +1164,20 @@ textarea:focus-visible {
   padding: var(--space-6) var(--space-5) var(--space-12);
 }
 
+.errorActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+
+.errorHomeLink {
+  color: var(--cobalt);
+  font-weight: var(--weight-strong);
+  text-underline-offset: var(--underline-offset);
+}
+
 .privacyLink,
 .privacyBack {
   color: var(--cobalt);

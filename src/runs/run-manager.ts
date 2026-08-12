@@ -42,6 +42,18 @@ export type RunView = {
   rooms: RunRoom[];
 };
 
+export class RunOperationError extends Error {
+  override name = "RunOperationError";
+}
+
+export class RunNotFoundError extends RunOperationError {
+  override name = "RunNotFoundError";
+
+  constructor() {
+    super("Run not found.");
+  }
+}
+
 async function getRunView(
   database: RunDatabase,
   runId: string,
@@ -61,7 +73,7 @@ async function getRunView(
     .limit(1);
 
   if (!run) {
-    throw new Error("Run not found.");
+    throw new RunNotFoundError();
   }
 
   const presentedTasks = await database
@@ -185,7 +197,7 @@ export function createRunManager(
           .limit(1);
 
         if (openRun) {
-          throw new Error("A Run is already open.");
+          throw new RunOperationError("A Run is already open.");
         }
 
         const [routine] = await transaction
@@ -198,7 +210,7 @@ export function createRunManager(
           .for("update");
 
         if (!routine) {
-          throw new Error("Choose an active Routine.");
+          throw new RunOperationError("Choose an active Routine.");
         }
 
         const [run] = await transaction
@@ -327,7 +339,7 @@ export function createRunManager(
           .limit(1);
 
         if (openRun) {
-          throw new Error("A Run is already open.");
+          throw new RunOperationError("A Run is already open.");
         }
 
         const [reopenedRun] = await transaction
@@ -344,7 +356,7 @@ export function createRunManager(
           .returning({ id: runs.id });
 
         if (!reopenedRun) {
-          throw new Error("This Run can no longer be reopened.");
+          throw new RunOperationError("This Run can no longer be reopened.");
         }
 
         return getRunView(transaction, reopenedRun.id);

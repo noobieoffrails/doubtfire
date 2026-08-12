@@ -6,15 +6,17 @@ import {
   Clock3,
   Home,
   Play,
-  RotateCcw,
   Settings,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import {
+  ReopenRunForm,
+  StartRunForm,
+} from "@/components/home-run-actions";
 import { LanguageToggle } from "@/components/language-toggle";
 import { RunChangeRefresh } from "@/components/run-change-refresh";
 import { RoutineArt } from "@/components/routine-art";
-import { Button } from "@/components/ui/button";
 import { createContentCatalog } from "@/content/content-catalog";
 import { getDatabase } from "@/db/client";
 import { dictionaries } from "@/i18n/config";
@@ -92,15 +94,12 @@ export default async function HomePage() {
                 {copy.continueCleaning}
               </Link>
             ) : (
-              <Button
-                className="startButton"
-                type="submit"
-                form="start-run-form"
+              <StartRunForm
+                action={startRunAction}
                 disabled={content.routines.length === 0}
-              >
-                <Play aria-hidden="true" fill="currentColor" strokeWidth={2.2} />
-                {copy.startCleaning}
-              </Button>
+                startLabel={copy.startCleaning}
+                startingLabel={copy.startingCleaning}
+              />
             )}
             <span className="coralDot" aria-hidden="true" />
           </div>
@@ -134,49 +133,47 @@ export default async function HomePage() {
                   )}
                 </small>
               </span>
-              <form action={reopenRunFromHomeAction}>
-                <input type="hidden" name="runId" value={runState.resumableRun.id} />
-                <button type="submit">
-                  <RotateCcw aria-hidden="true" />
-                  {copy.reopenRun}
-                </button>
-              </form>
+              <ReopenRunForm
+                action={reopenRunFromHomeAction}
+                reopenLabel={copy.reopenRun}
+                reopeningLabel={copy.reopeningRun}
+                runId={runState.resumableRun.id}
+              />
             </div>
           ) : null}
-          <form id="start-run-form" action={startRunAction}>
-            <ul className="routineList">
-              {content.routines.map((routine, index) => {
-                const style = routineStyles[index % routineStyles.length];
+          <ul className="routineList">
+            {content.routines.map((routine, index) => {
+              const style = routineStyles[index % routineStyles.length];
 
-                return (
-                  <li key={routine.id}>
-                    <label
-                      className={`routineIsland ${style.shape} ${openRun ? "inactive" : ""}`}
+              return (
+                <li key={routine.id}>
+                  <label
+                    className={`routineIsland ${style.shape} ${openRun ? "inactive" : ""}`}
+                  >
+                    <input
+                      className="srOnly"
+                      type="radio"
+                      name="routineId"
+                      value={routine.id}
+                      form="start-run-form"
+                      defaultChecked={index === 0}
+                      disabled={Boolean(openRun)}
+                    />
+                    <span
+                      className={`routineIcon ${style.iconTone}`}
+                      aria-hidden="true"
                     >
-                      <input
-                        className="srOnly"
-                        type="radio"
-                        name="routineId"
-                        value={routine.id}
-                        defaultChecked={index === 0}
-                        disabled={Boolean(openRun)}
-                      />
-                      <span
-                        className={`routineIcon ${style.iconTone}`}
-                        aria-hidden="true"
-                      >
-                        <CalendarDays strokeWidth={2} />
-                      </span>
-                      <span>{routine.name}</span>
-                      <span className="islandLinework" aria-hidden="true">
-                        <RoutineArt variant={style.art} />
-                      </span>
-                    </label>
-                  </li>
-                );
-              })}
-            </ul>
-          </form>
+                      <CalendarDays strokeWidth={2} />
+                    </span>
+                    <span>{routine.name}</span>
+                    <span className="islandLinework" aria-hidden="true">
+                      <RoutineArt variant={style.art} />
+                    </span>
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
           {content.routines.length === 0 ? (
             <div className="homeEmptyState">
               <p>{copy.noHomeRoutines}</p>

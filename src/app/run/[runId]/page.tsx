@@ -1,10 +1,15 @@
+import { notFound } from "next/navigation";
+import { z } from "zod";
+
 import { requireAllowedUser } from "@/auth/server";
 import { RunFlow } from "@/components/run-flow";
 import { getDatabase } from "@/db/client";
 import { dictionaries } from "@/i18n/config";
 import { getRequestLocale } from "@/i18n/server";
 import { allowsLocalPreview } from "@/lib/local-preview";
-import { createRunManager } from "@/runs/run-manager";
+import { createRunManager, RunNotFoundError } from "@/runs/run-manager";
+
+const runIdSchema = z.string().uuid();
 
 export default async function RunPage({
   params,
@@ -16,9 +21,24 @@ export default async function RunPage({
   }
 
   const { runId } = await params;
+
+  if (!runIdSchema.safeParse(runId).success) {
+    notFound();
+  }
+
   const locale = await getRequestLocale();
   const copy = dictionaries[locale];
-  const run = await createRunManager(getDatabase()).get(runId);
+  let run;
+
+  try {
+    run = await createRunManager(getDatabase()).get(runId);
+  } catch (error) {
+    if (error instanceof RunNotFoundError) {
+      notFound();
+    }
+
+    throw error;
+  }
 
   return (
     <RunFlow
@@ -30,6 +50,7 @@ export default async function RunPage({
         cleaningComplete: copy.cleaningComplete,
         doneWithRoom: copy.doneWithRoom,
         markAsDone: copy.markAsDone,
+        markingAsDone: copy.markingAsDone,
         nextRoom: copy.nextRoom,
         noDueTasks: copy.noDueTasks,
         roomProgress: copy.roomProgress,

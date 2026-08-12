@@ -5,9 +5,16 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { requireAllowedUser } from "@/auth/server";
+import type { ContentFormState } from "@/content/form-state";
 import { getDatabase } from "@/db/client";
+import { dictionaries } from "@/i18n/config";
+import { getRequestLocale } from "@/i18n/server";
 import { allowsLocalPreview } from "@/lib/local-preview";
-import { createRunManager, type RunView } from "@/runs/run-manager";
+import {
+  createRunManager,
+  RunOperationError,
+  type RunView,
+} from "@/runs/run-manager";
 
 const idSchema = z.string().uuid();
 
@@ -22,10 +29,30 @@ function refreshRunPaths(runId: string): void {
   revalidatePath(`/run/${runId}`);
 }
 
-export async function startRunAction(formData: FormData): Promise<void> {
+export async function startRunAction(
+  _state: ContentFormState,
+  formData: FormData,
+): Promise<ContentFormState> {
   await authorizeRunAction();
-  const routineId = idSchema.parse(formData.get("routineId"));
-  const run = await createRunManager(getDatabase()).start(routineId);
+  const locale = await getRequestLocale();
+  const copy = dictionaries[locale];
+  const routineId = idSchema.safeParse(formData.get("routineId"));
+
+  if (!routineId.success) {
+    return { status: "error", message: copy.runStartError };
+  }
+
+  let run: RunView;
+
+  try {
+    run = await createRunManager(getDatabase()).start(routineId.data);
+  } catch (error) {
+    if (error instanceof RunOperationError) {
+      return { status: "error", message: copy.runStartError };
+    }
+
+    throw error;
+  }
 
   refreshRunPaths(run.id);
   redirect(`/run/${run.id}`);
@@ -68,11 +95,29 @@ export async function reopenRunAction(runIdValue: string): Promise<RunView> {
 }
 
 export async function reopenRunFromHomeAction(
+  _state: ContentFormState,
   formData: FormData,
-): Promise<void> {
+): Promise<ContentFormState> {
   await authorizeRunAction();
-  const runId = idSchema.parse(formData.get("runId"));
-  const run = await createRunManager(getDatabase()).reopen(runId);
+  const locale = await getRequestLocale();
+  const copy = dictionaries[locale];
+  const runId = idSchema.safeParse(formData.get("runId"));
+
+  if (!runId.success) {
+    return { status: "error", message: copy.runReopenError };
+  }
+
+  let run: RunView;
+
+  try {
+    run = await createRunManager(getDatabase()).reopen(runId.data);
+  } catch (error) {
+    if (error instanceof RunOperationError) {
+      return { status: "error", message: copy.runReopenError };
+    }
+
+    throw error;
+  }
 
   refreshRunPaths(run.id);
   redirect(`/run/${run.id}`);
