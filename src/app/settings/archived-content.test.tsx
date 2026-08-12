@@ -87,13 +87,13 @@ describe("ArchivedContent", () => {
     );
 
     expect(
-      screen.getByRole("heading", { level: 3, name: "Archived Routines" }),
+      screen.getByRole("heading", { level: 3, name: "Archived routines" }),
     ).toBeTruthy();
     expect(
-      screen.getByRole("heading", { level: 3, name: "Archived Rooms" }),
+      screen.getByRole("heading", { level: 3, name: "Archived rooms" }),
     ).toBeTruthy();
     expect(
-      screen.getByRole("heading", { level: 3, name: "Archived Tasks" }),
+      screen.getByRole("heading", { level: 3, name: "Archived tasks" }),
     ).toBeTruthy();
     expect(screen.getByRole("button", { name: "Restore Seasonal" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Restore Loft" })).toBeTruthy();
