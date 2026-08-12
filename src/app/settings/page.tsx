@@ -38,6 +38,7 @@ import {
   updateRoutineAction,
   updateTaskAction,
 } from "./actions";
+import { ArchivedContent } from "./archived-content";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getRequestLocale();
@@ -54,7 +55,11 @@ export default async function SettingsPage() {
 
   const locale = await getRequestLocale();
   const copy = dictionaries[locale];
-  const content = await createContentCatalog(getDatabase()).list();
+  const catalog = createContentCatalog(getDatabase());
+  const [content, allContent] = await Promise.all([
+    catalog.list(),
+    catalog.list({ includeArchived: true }),
+  ]);
   const routineNameById = new Map(
     content.routines.map((routine) => [routine.id, routine.name]),
   );
@@ -108,6 +113,7 @@ export default async function SettingsPage() {
               <a href="#routines">{copy.routines}</a>
               <a href="#rooms">{copy.rooms}</a>
               <a href="#tasks">{copy.tasks}</a>
+              <a href="#archived">{copy.archivedContent}</a>
             </nav>
           </section>
 
@@ -126,6 +132,7 @@ export default async function SettingsPage() {
             routineNameById={routineNameById}
             tasks={content.tasks}
           />
+          <ArchivedContent content={allContent} copy={copy} />
         </div>
 
         <nav className="bottomNav" aria-label={copy.primaryNavigation}>

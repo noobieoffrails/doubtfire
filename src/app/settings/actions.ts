@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { requireAllowedUser } from "@/auth/server";
 import {
+  ContentRestoreBlockedError,
   createContentCatalog,
   type CreateRoomInput,
   type CreateRoutineInput,
@@ -48,7 +49,7 @@ function taskInput(formData: FormData): CreateTaskInput {
 
 async function runContentAction(
   operation: () => Promise<unknown>,
-  successMessage: "saved" | "archived",
+  successMessage: "saved" | "archived" | "restored",
 ): Promise<ContentFormState> {
   if (!allowsLocalPreview()) {
     await requireAllowedUser();
@@ -65,10 +66,21 @@ async function runContentAction(
     return {
       status: "success",
       message:
-        successMessage === "saved" ? copy.contentSaved : copy.contentArchived,
+        successMessage === "saved"
+          ? copy.contentSaved
+          : successMessage === "archived"
+            ? copy.contentArchived
+            : copy.contentRestored,
     };
-  } catch {
-    return { status: "error", message: copy.contentSaveError };
+  } catch (error) {
+    const message =
+      error instanceof ContentRestoreBlockedError
+        ? copy.contentRestoreBlocked
+        : successMessage === "restored"
+          ? copy.contentRestoreError
+          : copy.contentSaveError;
+
+    return { status: "error", message };
   }
 }
 
@@ -110,6 +122,19 @@ export async function archiveRoutineAction(
   );
 }
 
+export async function restoreRoutineAction(
+  id: string,
+  _state: ContentFormState,
+  _formData: FormData,
+): Promise<ContentFormState> {
+  void _state;
+  void _formData;
+  return runContentAction(
+    () => createContentCatalog(getDatabase()).restoreRoutine(id),
+    "restored",
+  );
+}
+
 export async function createRoomAction(
   _state: ContentFormState,
   formData: FormData,
@@ -144,6 +169,19 @@ export async function archiveRoomAction(
   );
 }
 
+export async function restoreRoomAction(
+  id: string,
+  _state: ContentFormState,
+  _formData: FormData,
+): Promise<ContentFormState> {
+  void _state;
+  void _formData;
+  return runContentAction(
+    () => createContentCatalog(getDatabase()).restoreRoom(id),
+    "restored",
+  );
+}
+
 export async function createTaskAction(
   _state: ContentFormState,
   formData: FormData,
@@ -175,5 +213,18 @@ export async function archiveTaskAction(
   return runContentAction(
     () => createContentCatalog(getDatabase()).archiveTask(id),
     "archived",
+  );
+}
+
+export async function restoreTaskAction(
+  id: string,
+  _state: ContentFormState,
+  _formData: FormData,
+): Promise<ContentFormState> {
+  void _state;
+  void _formData;
+  return runContentAction(
+    () => createContentCatalog(getDatabase()).restoreTask(id),
+    "restored",
   );
 }
