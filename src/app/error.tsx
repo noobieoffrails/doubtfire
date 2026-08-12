@@ -31,11 +31,11 @@ export default function ErrorPage({
           </span>
           <h1 id="error-heading">{copy.errorHeading}</h1>
           <p>{copy.errorDescription}</p>
-          <div className="mt-6 flex flex-wrap items-center gap-4">
+          <div className="errorActions">
             <Button type="button" onClick={retry}>
               {copy.tryAgain}
             </Button>
-            <Link className="font-bold text-[var(--cobalt)]" href="/">
+            <Link className="errorHomeLink" href="/">
               {copy.backHome}
             </Link>
           </div>
