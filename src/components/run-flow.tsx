@@ -6,11 +6,17 @@ import {
   CheckCircle2,
   ChevronRight,
   Grid2X2,
-  ListChecks,
   RotateCcw,
 } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  useTransition,
+} from "react";
 
 import {
   closeRunAction,
@@ -19,10 +25,10 @@ import {
 } from "@/app/run/actions";
 import { useRunChangeRefresh } from "@/components/run-change-refresh";
 import { Button } from "@/components/ui/button";
-import { fetchRun } from "@/realtime/fetch-run";
 import type { Locale } from "@/i18n/config";
 import { formatPlural } from "@/i18n/plural";
-import type { RunView } from "@/runs/run-manager";
+import { fetchRun } from "@/realtime/fetch-run";
+import type { RunTask, RunView } from "@/runs/run-manager";
 
 export type RunCopy = {
   allTasks: string;
@@ -30,16 +36,22 @@ export type RunCopy = {
   backToRooms: string;
   cleaningComplete: string;
   doneWithRoom: string;
+  doubtfireHome: string;
   markAsDone: string;
   markingAsDone: string;
   nextRoom: string;
   noDueTasks: string;
+  productName: string;
+  retryTaskChange: string;
   rooms: string;
   roomsInRun: string;
   runChangeError: string;
   runClosed: string;
   runCompleteDescription: string;
   runNavigation: string;
+  runView: string;
+  switchRoom: string;
+  taskChangeError: string;
   taskList: string;
   undo: string;
 };
@@ -49,6 +61,42 @@ type TaskMutationState = {
   ticked: boolean;
   version: number;
 };
+
+type RunViewMode = "rooms" | "tasks";
+
+type TaskGroup = {
+  label: string | null;
+  tasks: RunTask[];
+};
+
+const RUN_VIEW_STORAGE_KEY = "doubtfire-run-view";
+const RUN_VIEW_CHANGE_EVENT = "doubtfire-run-view-change";
+let currentRunView: RunViewMode = "rooms";
+
+class RunViewSynchronizationError extends Error {
+  override name = "RunViewSynchronizationError";
+}
+
+function getStoredRunView(): RunViewMode {
+  try {
+    const savedView = window.localStorage.getItem(RUN_VIEW_STORAGE_KEY);
+    currentRunView = savedView === "tasks" ? "tasks" : "rooms";
+  } catch {
+    // Keep the in-memory choice when browser storage is not available.
+  }
+
+  return currentRunView;
+}
+
+function subscribeToStoredRunView(onStoreChange: () => void): () => void {
+  window.addEventListener("storage", onStoreChange);
+  window.addEventListener(RUN_VIEW_CHANGE_EVENT, onStoreChange);
+
+  return () => {
+    window.removeEventListener("storage", onStoreChange);
+    window.removeEventListener(RUN_VIEW_CHANGE_EVENT, onStoreChange);
+  };
+}
 
 function withTick(
   run: RunView,
@@ -74,32 +122,146 @@ function withTick(
   };
 }
 
-function RunTaskControl({
-  onChange,
-  roomName,
-  task,
+function groupTasks(tasks: RunTask[]): TaskGroup[] {
+  return tasks.reduce<TaskGroup[]>((groups, task) => {
+    const existingGroup = groups.find((group) => group.label === task.groupLabel);
+
+    if (existingGroup) {
+      existingGroup.tasks.push(task);
+      return groups;
+    }
+
+    groups.push({ label: task.groupLabel, tasks: [task] });
+    return groups;
+  }, []);
+}
+
+function RunHeader({
+  copy,
+  count,
+  locale,
+  routineName,
 }: {
-  onChange: (taskId: string, ticked: boolean) => void;
-  roomName?: string;
-  task: RunView["rooms"][number]["tasks"][number];
+  copy: RunCopy;
+  count: number;
+  locale: Locale;
+  routineName: string;
 }) {
   return (
-    <button
-      className={roomName ? undefined : "runTaskButton"}
-      type="button"
-      aria-pressed={task.ticked}
-      onClick={() => onChange(task.id, !task.ticked)}
-    >
-      <span className="taskCheck" aria-hidden="true">
-        {task.ticked ? <Check strokeWidth={3} /> : null}
-      </span>
-      <span className={roomName ? undefined : "runTaskCopy"}>
-        {roomName ? <small>{roomName}</small> : null}
-        {!roomName && task.groupLabel ? <small>{task.groupLabel}</small> : null}
-        <strong>{task.text}</strong>
-        {!roomName && task.note ? <span>{task.note}</span> : null}
-      </span>
-    </button>
+    <nav className="runHeader" aria-label={copy.runNavigation}>
+      <Link className="runWordmark" href="/" aria-label={copy.doubtfireHome}>
+        {copy.productName}
+      </Link>
+      <span className="runRoutineName">{routineName}</span>
+      <span className="runCount">{formatPlural(locale, "tasksDone", count)}</span>
+    </nav>
+  );
+}
+
+function RunTaskControl({
+  copy,
+  failedTick,
+  onChange,
+  onRetry,
+  task,
+}: {
+  copy: RunCopy;
+  failedTick: boolean | undefined;
+  onChange: (taskId: string, ticked: boolean) => void;
+  onRetry: (taskId: string, ticked: boolean) => void;
+  task: RunTask;
+}) {
+  const noteId = task.note ? `task-note-${task.id}` : undefined;
+
+  return (
+    <div className="runTaskControl" data-ticked={task.ticked}>
+      <button
+        className="runTaskButton"
+        type="button"
+        aria-describedby={noteId}
+        aria-pressed={task.ticked}
+        onClick={() => onChange(task.id, !task.ticked)}
+      >
+        <span className="taskCheck" aria-hidden="true">
+          {task.ticked ? <Check strokeWidth={3} /> : null}
+        </span>
+        <span className="runTaskCopy">
+          <strong>{task.text}</strong>
+        </span>
+      </button>
+      {task.note ? (
+        <p className="runTaskNote" id={noteId}>
+          {task.note}
+        </p>
+      ) : null}
+      {failedTick !== undefined ? (
+        <div className="runTaskFailure" role="alert">
+          <span>{copy.taskChangeError}</span>
+          <button
+            type="button"
+            aria-label={`${copy.retryTaskChange} ${task.text}`}
+            onClick={() => onRetry(task.id, failedTick)}
+          >
+            {copy.retryTaskChange}
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function RunTaskGroups({
+  copy,
+  failedTicks,
+  groupHeadingLevel,
+  onChange,
+  onRetry,
+  tasks,
+}: {
+  copy: RunCopy;
+  failedTicks: Record<string, boolean>;
+  groupHeadingLevel: 2 | 3;
+  onChange: (taskId: string, ticked: boolean) => void;
+  onRetry: (taskId: string, ticked: boolean) => void;
+  tasks: RunTask[];
+}) {
+  const GroupHeading = groupHeadingLevel === 2 ? "h2" : "h3";
+
+  return (
+    <div className="runTaskGroups">
+      {groupTasks(tasks).map((group, groupIndex) => {
+        const groupId = group.label
+          ? `task-group-${groupHeadingLevel}-${group.tasks[0].id}`
+          : undefined;
+
+        return (
+          <section
+            className="runTaskGroup"
+            aria-labelledby={groupId}
+            key={`${group.label ?? "ungrouped"}-${groupIndex}`}
+          >
+            {group.label ? (
+              <GroupHeading className="runTaskGroupHeading" id={groupId}>
+                {group.label}
+              </GroupHeading>
+            ) : null}
+            <ul className="runTaskList" aria-label={group.label ? undefined : copy.taskList}>
+              {group.tasks.map((task) => (
+                <li key={task.id}>
+                  <RunTaskControl
+                    copy={copy}
+                    failedTick={failedTicks[task.id]}
+                    task={task}
+                    onChange={onChange}
+                    onRetry={onRetry}
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        );
+      })}
+    </div>
   );
 }
 
@@ -121,8 +283,14 @@ export function RunFlow({
   copy: RunCopy;
 }) {
   const [run, setRun] = useState(initialRun);
+  const runView = useSyncExternalStore(
+    subscribeToStoredRunView,
+    getStoredRunView,
+    () => "rooms",
+  );
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [failedTicks, setFailedTicks] = useState<Record<string, boolean>>({});
   const [undoVisible, setUndoVisible] = useState(false);
   const [isClosing, startClosing] = useTransition();
   const taskMutations = useRef(new Map<string, TaskMutationState>());
@@ -153,9 +321,34 @@ export function RunFlow({
     return () => window.clearTimeout(timer);
   }, [undoVisible]);
 
+  function chooseRunView(view: RunViewMode) {
+    currentRunView = view;
+
+    try {
+      window.localStorage.setItem(RUN_VIEW_STORAGE_KEY, view);
+    } catch {
+      // The current tab can still use the selected view without browser storage.
+    }
+
+    window.dispatchEvent(new Event(RUN_VIEW_CHANGE_EVENT));
+  }
+
+  function clearFailedTick(taskId: string) {
+    setFailedTicks((currentFailures) => {
+      if (!(taskId in currentFailures)) {
+        return currentFailures;
+      }
+
+      const nextFailures = { ...currentFailures };
+      delete nextFailures[taskId];
+      return nextFailures;
+    });
+  }
+
   function changeTick(taskId: string, ticked: boolean) {
     const previousMutation = taskMutations.current.get(taskId);
     const version = (previousMutation?.version ?? 0) + 1;
+    clearFailedTick(taskId);
     setError(null);
     setRun((currentRun) => withTick(currentRun, taskId, ticked));
 
@@ -170,7 +363,9 @@ export function RunFlow({
             .find((task) => task.id === taskId);
 
           if (!savedTask) {
-            throw new Error("Saved Run does not contain the changed Task.");
+            throw new RunViewSynchronizationError(
+              "Saved Run does not contain the changed Task.",
+            );
           }
 
           if (taskMutations.current.get(taskId)?.version === version) {
@@ -179,7 +374,10 @@ export function RunFlow({
         } catch {
           if (taskMutations.current.get(taskId)?.version === version) {
             setRun((currentRun) => withTick(currentRun, taskId, !ticked));
-            setError(copy.runChangeError);
+            setFailedTicks((currentFailures) => ({
+              ...currentFailures,
+              [taskId]: ticked,
+            }));
           }
         }
       })
@@ -223,6 +421,9 @@ export function RunFlow({
     return (
       <main className="runCanvas">
         <section className="runSurface completionSurface" aria-labelledby="completion-title">
+          <Link className="completionWordmark" href="/" aria-label={copy.doubtfireHome}>
+            {copy.productName}
+          </Link>
           <div className="completionIsland">
             <span className="completionIcon" aria-hidden="true">
               <CheckCircle2 strokeWidth={1.8} />
@@ -256,38 +457,63 @@ export function RunFlow({
     return (
       <main className="runCanvas">
         <section className="runSurface" aria-labelledby="room-title">
-          <nav className="runHeader" aria-label={copy.runNavigation}>
-            <button className="iconButton" type="button" onClick={() => setActiveRoomId(null)}>
-              <ArrowLeft aria-hidden="true" />
-              <span className="srOnly">{copy.backToRooms}</span>
-            </button>
-            <span className="runRoutineName">{run.routine.name}</span>
-            <span className="runCount">
-              {formatPlural(locale, "tasksDone", activeRoom.tickedCount)}
-            </span>
-          </nav>
+          <RunHeader
+            copy={copy}
+            count={activeRoom.tickedCount}
+            locale={locale}
+            routineName={run.routine.name}
+          />
 
           <section className="roomTaskSection">
-            <div className="roomTaskHeading">
-              <h1 id="room-title">{activeRoom.name}</h1>
-              <ListChecks aria-hidden="true" />
-            </div>
-            <ul className="runTaskList" aria-label={copy.taskList}>
-              {activeRoom.tasks.map((task) => (
-                <li key={task.id}>
-                  <RunTaskControl task={task} onChange={changeTick} />
-                </li>
-              ))}
-            </ul>
+            <header className="roomTaskHero">
+              <div className="roomTaskHeading">
+                <button
+                  className="iconButton"
+                  type="button"
+                  onClick={() => setActiveRoomId(null)}
+                >
+                  <ArrowLeft aria-hidden="true" />
+                  <span className="srOnly">{copy.backToRooms}</span>
+                </button>
+                <h1 id="room-title">{activeRoom.name}</h1>
+              </div>
+              <div className="roomSwitcher" role="group" aria-label={copy.switchRoom}>
+                {run.rooms.map((room) => (
+                  <button
+                    type="button"
+                    aria-pressed={room.id === activeRoom.id}
+                    key={room.id}
+                    onClick={() => setActiveRoomId(room.id)}
+                  >
+                    {room.name}
+                  </button>
+                ))}
+              </div>
+            </header>
+
+            <RunTaskGroups
+              copy={copy}
+              failedTicks={failedTicks}
+              groupHeadingLevel={2}
+              tasks={activeRoom.tasks}
+              onChange={changeTick}
+              onRetry={changeTick}
+            />
             <RunAlert message={error} />
-            <Button
-              className="roomDoneButton"
-              type="button"
-              onClick={() => setActiveRoomId(nextRoom?.id ?? null)}
-            >
-              {nextRoom ? copy.nextRoom : copy.doneWithRoom}
-              {nextRoom ? <ChevronRight aria-hidden="true" /> : <Grid2X2 aria-hidden="true" />}
-            </Button>
+            <div className="roomDoneDock">
+              <Button
+                className="roomDoneButton"
+                type="button"
+                onClick={() => setActiveRoomId(nextRoom?.id ?? null)}
+              >
+                {nextRoom ? copy.nextRoom : copy.doneWithRoom}
+                {nextRoom ? (
+                  <ChevronRight aria-hidden="true" />
+                ) : (
+                  <Grid2X2 aria-hidden="true" />
+                )}
+              </Button>
+            </div>
           </section>
         </section>
       </main>
@@ -297,32 +523,51 @@ export function RunFlow({
   return (
     <main className="runCanvas">
       <section className="runSurface" aria-labelledby="run-title">
-        <nav className="runHeader" aria-label={copy.runNavigation}>
-          <Link className="iconButton" href="/">
-            <ArrowLeft aria-hidden="true" />
-            <span className="srOnly">{copy.backHome}</span>
-          </Link>
-          <span className="runRoutineName">{run.routine.name}</span>
-          <span className="runCount">
-            {formatPlural(locale, "tasksDone", run.tickedCount)}
-          </span>
-        </nav>
+        <RunHeader
+          copy={copy}
+          count={run.tickedCount}
+          locale={locale}
+          routineName={run.routine.name}
+        />
 
         <section className="runOverview">
           <div className="runOverviewHeading">
-            <h1 id="run-title">{copy.roomsInRun}</h1>
+            <h1 id="run-title">{runView === "rooms" ? copy.roomsInRun : copy.allTasks}</h1>
           </div>
 
           {run.rooms.length ? (
-            <section aria-labelledby="run-rooms-title">
+            <div className="runViewChoices" role="group" aria-label={copy.runView}>
+              <button
+                type="button"
+                aria-pressed={runView === "rooms"}
+                onClick={() => chooseRunView("rooms")}
+              >
+                {copy.rooms}
+              </button>
+              <button
+                type="button"
+                aria-pressed={runView === "tasks"}
+                onClick={() => chooseRunView("tasks")}
+              >
+                {copy.allTasks}
+              </button>
+            </div>
+          ) : null}
+
+          {run.rooms.length ? (
+            <section
+              className="runRoomsView"
+              aria-labelledby="run-rooms-title"
+              hidden={runView !== "rooms"}
+            >
               <h2 className="srOnly" id="run-rooms-title">
                 {copy.rooms}
               </h2>
               <ul className="runRoomGrid">
-                {run.rooms.map((room, index) => (
+                {run.rooms.map((room) => (
                   <li key={room.id}>
                     <button
-                      className={`runRoomIsland roomTone${index % 3}`}
+                      className="runRoomIsland"
                       type="button"
                       onClick={() => setActiveRoomId(room.id)}
                     >
@@ -339,31 +584,29 @@ export function RunFlow({
           )}
 
           {run.rooms.length ? (
-            <section aria-labelledby="all-tasks-title">
-              <h2 className="srOnly" id="all-tasks-title">
-                {copy.allTasks}
-              </h2>
-              <details className="allTasksDisclosure">
-                <summary>
-                  <ListChecks aria-hidden="true" />
-                  {copy.allTasks}
-                  <ChevronRight className="summaryChevron" aria-hidden="true" />
-                </summary>
-                <ul>
-                  {run.rooms.flatMap((room) =>
-                    room.tasks.map((task) => (
-                      <li key={task.id}>
-                        <RunTaskControl
-                          task={task}
-                          roomName={room.name}
-                          onChange={changeTick}
-                        />
-                      </li>
-                    )),
-                  )}
-                </ul>
-              </details>
-            </section>
+            <div className="allTasksView" hidden={runView !== "tasks"}>
+              {run.rooms.map((room) => {
+                const roomHeadingId = `all-tasks-room-${room.id}`;
+
+                return (
+                  <section
+                    className="allTasksRoom"
+                    aria-labelledby={roomHeadingId}
+                    key={room.id}
+                  >
+                    <h2 id={roomHeadingId}>{room.name}</h2>
+                    <RunTaskGroups
+                      copy={copy}
+                      failedTicks={failedTicks}
+                      groupHeadingLevel={3}
+                      tasks={room.tasks}
+                      onChange={changeTick}
+                      onRetry={changeTick}
+                    />
+                  </section>
+                );
+              })}
+            </div>
           ) : null}
 
           <RunAlert message={error} />
