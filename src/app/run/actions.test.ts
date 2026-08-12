@@ -55,7 +55,7 @@ describe("Home Run actions", () => {
       startRunAction(initialContentFormState, formData),
     ).resolves.toEqual({
       status: "error",
-      message: "Could not start the Run. Try again.",
+      message: "Could not start the run. Try again.",
     });
   });
 
@@ -70,7 +70,7 @@ describe("Home Run actions", () => {
       reopenRunFromHomeAction(initialContentFormState, formData),
     ).resolves.toEqual({
       status: "error",
-      message: "Could not reopen the Run. Try again.",
+      message: "Could not reopen the run. Try again.",
     });
   });
 
