@@ -38,7 +38,7 @@ Also name the files you will **not** change in this step. This is the item that 
 | 6 | done ([#16](https://github.com/noobieoffrails/doubtfire/pull/16)) | L1, L2, L5, H2, H4, H6, H7, H8, A8, S5, S7, N3, T2, T3 | Rebuild the Run experience. **Ask the owner the question in "Open decisions" before you start.** |
 | 7 | done ([#17](https://github.com/noobieoffrails/doubtfire/pull/17)) | S3, H3, H9 | Settings, including the archive restore path. **Ask the owner the question in "Open decisions" before you start.** |
 | 8 | done ([#18](https://github.com/noobieoffrails/doubtfire/pull/18)) | C2 | Change interface copy to sentence case in both locales. Do this last so it covers the strings that steps 1 to 7 add. |
-| 9 | todo | F3 | Rewrite `DESIGN.md` to describe the interface that now exists, with the token layer as the source of truth. |
+| 9 | done ([#19](https://github.com/noobieoffrails/doubtfire/pull/19)) | F3 | Rewrite `DESIGN.md` to describe the interface that now exists, with the token layer as the source of truth. |
 
 ## Order rules
 
