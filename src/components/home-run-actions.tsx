@@ -39,7 +39,7 @@ export function StartRunForm({
   );
 
   return (
-    <form id="start-run-form" action={formAction}>
+    <form className="startRunForm" id="start-run-form" action={formAction}>
       <Button className="startButton" type="submit" disabled={disabled || pending}>
         <Play aria-hidden="true" fill="currentColor" strokeWidth={2.2} />
         {pending ? startingLabel : startLabel}
