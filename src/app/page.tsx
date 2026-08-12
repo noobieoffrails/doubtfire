@@ -3,7 +3,6 @@ import {
   CalendarDays,
   CheckCircle2,
   CircleUserRound,
-  Clock3,
   Home,
   Play,
   Settings,
@@ -141,7 +140,11 @@ export default async function HomePage() {
               />
             </div>
           ) : null}
-          <ul className="routineList">
+          <ul
+            className="routineList"
+            role="radiogroup"
+            aria-labelledby="routine-title"
+          >
             {content.routines.map((routine, index) => {
               const style = routineStyles[index % routineStyles.length];
 
@@ -187,10 +190,6 @@ export default async function HomePage() {
             <Home aria-hidden="true" strokeWidth={2.1} />
             <span>{copy.home}</span>
           </Link>
-          <span className="navItem disabled" aria-disabled="true">
-            <Clock3 aria-hidden="true" strokeWidth={2.1} />
-            <span>{copy.history}</span>
-          </span>
           <Link className="navItem" href="/settings">
             <Settings aria-hidden="true" strokeWidth={2.1} />
             <span>{copy.settings}</span>

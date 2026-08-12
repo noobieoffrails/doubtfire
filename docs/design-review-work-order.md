@@ -32,7 +32,7 @@ Also name the files you will **not** change in this step. This is the item that 
 | --- | --- | --- | --- |
 | 1 | done ([#11](https://github.com/noobieoffrails/doubtfire/pull/11)) | T1, S2, S1 | Acknowledge the primary action within 100 ms, add error and not-found boundaries, and give the Home Run actions an error path. |
 | 2 | done ([#12](https://github.com/noobieoffrails/doubtfire/pull/12)) | F1, F2, X1 | Add the token layer, replace every literal value with the nearest token, and remove the dead CSS and the dead `phaseNote` key. |
-| 3 | todo | A1, A2, A3, A4, A5, A7, A9 | Correct the measured accessibility failures: control borders, reflow at 200 % zoom, status messages, type below 12 px, disabled buttons, the disabled navigation item, and the thin semantic structure. |
+| 3 | done ([#13](https://github.com/noobieoffrails/doubtfire/pull/13)) | A1, A2, A3, A4, A5, A7, A9 | Correct the measured accessibility failures: control borders, reflow at 200 % zoom, status messages, type below 12 px, disabled buttons, the disabled navigation item, and the thin semantic structure. |
 | 4 | todo | C1, C3, N1, N2 | Correct the plural defects, remove the duplicated strings, and make the page name match the link that leads to it. |
 | 5 | todo | L3, A6, H1, S4, S6, H5, L4, H10 | Rebuild the Home and Run overview flow. Move the primary action below the Routine list, which also corrects the tab order. |
 | 6 | todo | L1, L2, L5, H2, H4, H6, H7, H8, A8, S5, S7, N3, T2, T3 | Rebuild the Run experience. **Ask the owner the question in "Open decisions" before you start.** |
