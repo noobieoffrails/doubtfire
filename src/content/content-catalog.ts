@@ -3,6 +3,7 @@ import {
   asc,
   eq,
   getTableColumns,
+  isNotNull,
   isNull,
   max,
   ne,
@@ -14,6 +15,13 @@ import * as schema from "../db/schema";
 import { rooms, routines, tasks } from "../db/schema";
 
 const sortOrderGap = 100;
+
+export class ContentRestoreBlockedError extends Error {
+  constructor() {
+    super("A Task needs an active Room and Routine before it can be restored.");
+    this.name = "ContentRestoreBlockedError";
+  }
+}
 
 async function assertRoutineIncludesNoCycle(
   database: PostgresJsDatabase<typeof schema>,
@@ -338,6 +346,58 @@ export function createContentCatalog(
       return task;
     },
 
+    async restoreTask(id: string) {
+      return database.transaction(async (transaction) => {
+        const [taskToRestore] = await transaction
+          .select({ roomId: tasks.roomId, routineId: tasks.routineId })
+          .from(tasks)
+          .where(and(eq(tasks.id, id), isNotNull(tasks.archivedAt)))
+          .limit(1)
+          .for("update");
+
+        if (!taskToRestore) {
+          return undefined;
+        }
+
+        const [[room], [routine]] = await Promise.all([
+          transaction
+            .select({ id: rooms.id })
+            .from(rooms)
+            .where(
+              and(
+                eq(rooms.id, taskToRestore.roomId),
+                isNull(rooms.archivedAt),
+              ),
+            )
+            .limit(1)
+            .for("update"),
+          transaction
+            .select({ id: routines.id })
+            .from(routines)
+            .where(
+              and(
+                eq(routines.id, taskToRestore.routineId),
+                isNull(routines.archivedAt),
+              ),
+            )
+            .limit(1)
+            .for("update"),
+        ]);
+
+        if (!room || !routine) {
+          throw new ContentRestoreBlockedError();
+        }
+
+        const [task] = await transaction
+          .update(tasks)
+          .set({ archivedAt: null })
+          .where(eq(tasks.id, id))
+          .returning();
+
+        return task;
+      });
+    },
+
     async archiveRoutine(id: string) {
       return database.transaction(async (transaction) => {
         const [routine] = await transaction
@@ -361,11 +421,31 @@ export function createContentCatalog(
       });
     },
 
+    async restoreRoutine(id: string) {
+      const [routine] = await database
+        .update(routines)
+        .set({ archivedAt: null })
+        .where(and(eq(routines.id, id), isNotNull(routines.archivedAt)))
+        .returning();
+
+      return routine;
+    },
+
     async archiveRoom(id: string) {
       const [room] = await database
         .update(rooms)
         .set({ archivedAt: new Date() })
         .where(eq(rooms.id, id))
+        .returning();
+
+      return room;
+    },
+
+    async restoreRoom(id: string) {
+      const [room] = await database
+        .update(rooms)
+        .set({ archivedAt: null })
+        .where(and(eq(rooms.id, id), isNotNull(rooms.archivedAt)))
         .returning();
 
       return room;
