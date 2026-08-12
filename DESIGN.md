@@ -1,224 +1,205 @@
 ---
 name: Doubtfire
-description: Fresh, calm household care shaped through broad color islands.
-colors:
-  deep-navy: "#10184d"
-  muted-navy: "#56628b"
-  action-cobalt: "#075cf5"
-  action-cobalt-deep: "#0047d7"
-  open-sky: "#e3f3ff"
-  clear-sky: "#9ed8ff"
-  fresh-mint: "#e5f7ef"
-  leaf-mint: "#7dd9bb"
-  soft-lilac: "#efe9ff"
-  bright-lilac: "#bba6ff"
-  warm-coral: "#ff827d"
-  cool-ice: "#f7fbff"
-  clean-white: "#ffffff"
-typography:
-  display:
-    fontFamily: "Manrope, sans-serif"
-    fontSize: "clamp(2.55rem, 11.4vw, 4.8rem)"
-    fontWeight: 780
-    lineHeight: 0.98
-    letterSpacing: "-0.04em"
-  headline:
-    fontFamily: "Manrope, sans-serif"
-    fontSize: "clamp(1.75rem, 5vw, 2.15rem)"
-    fontWeight: 780
-    lineHeight: 1.05
-    letterSpacing: "-0.035em"
-  title:
-    fontFamily: "Manrope, sans-serif"
-    fontSize: "clamp(1.15rem, 5.6vw, 1.42rem)"
-    fontWeight: 760
-    lineHeight: 1.2
-    letterSpacing: "-0.025em"
-  body:
-    fontFamily: "Manrope, sans-serif"
-    fontSize: "1rem"
-    fontWeight: 520
-    lineHeight: 1.5
-  label:
-    fontFamily: "Manrope, sans-serif"
-    fontSize: "0.875rem"
-    fontWeight: 750
-    lineHeight: 1.2
-rounded:
-  control: "14px"
-  pill: "999px"
-  field-small: "28px"
-  field-large: "84px"
-spacing:
-  xs: "8px"
-  sm: "12px"
-  md: "16px"
-  lg: "20px"
-  xl: "28px"
-  2xl: "48px"
-components:
-  button-primary:
-    backgroundColor: "{colors.action-cobalt}"
-    textColor: "{colors.clean-white}"
-    typography: "{typography.body}"
-    rounded: "{rounded.control}"
-    padding: "12px 20px"
-    height: "48px"
-  button-primary-hover:
-    backgroundColor: "{colors.action-cobalt-deep}"
-    textColor: "{colors.clean-white}"
-  routine-sky:
-    backgroundColor: "{colors.open-sky}"
-    textColor: "{colors.deep-navy}"
-    typography: "{typography.title}"
-    padding: "14px 18px"
-    height: "108px"
-  routine-mint:
-    backgroundColor: "{colors.fresh-mint}"
-    textColor: "{colors.deep-navy}"
-    typography: "{typography.title}"
-    padding: "14px 18px"
-    height: "108px"
-  routine-lilac:
-    backgroundColor: "{colors.soft-lilac}"
-    textColor: "{colors.deep-navy}"
-    typography: "{typography.title}"
-    padding: "14px 18px"
-    height: "108px"
+description: Calm household care shaped through broad color islands.
+tokenSource: "src/app/globals.css :root"
 ---
 
-# Design System: Doubtfire
+# Doubtfire interface design system
 
-## Overview
+## Authority
 
-**Creative North Star: "Color Islands"**
+This file describes the interface rules and the patterns that use them. It does not copy the token values.
 
-Doubtfire is a fresh, light, and modern household utility. Familiar controls sit on an open white surface. Broad fields of sky, mint, and lilac give the product a clear style. The interface is direct and supportive. It gives people a calm place to start without scores, debt, or pressure.
+The `:root` block in `src/app/globals.css` is the source of truth for color, type, spacing, shape, motion, effects, and interface dimensions. Add or change a value there first. Application rules must use a token instead of a new literal value.
 
-The layout uses a familiar app structure: a compact header, one clear opening action, a short Routine list, and fixed primary navigation on phones. Color makes each choice easy to identify. It does not report status or urgency.
+The token families are:
 
-**Key Characteristics:**
+| Family | CSS custom properties | Purpose |
+| --- | --- | --- |
+| Spacing | `--space-*` | Gaps, padding, margins, and control height |
+| Type | `--text-*`, `--weight-*`, `--tracking-*`, `--measure-*` | Type hierarchy and readable line length |
+| Shape | `--radius-*`, `--stroke-*` | Controls, islands, panels, and focus outlines |
+| Motion | `--duration-*`, `--ease-*` | Feedback and the care-image entrance |
+| Size | `--size-*`, `--blur-*` | Named component and layout dimensions |
+| Color | Named ink, action, surface, state, and glow properties | Text, controls, feedback, and atmosphere |
+| Effect | `--shadow-*` | Action, control, art, toast, Room, and surface depth |
 
-- Broad color fields instead of a neutral card dashboard.
-- Deep navy type and cobalt actions on white or cool-ice surfaces.
-- Asymmetric soft corners and almost-flat depth.
-- Generous open space with compact, familiar controls.
-- Supportive copy with no competitive or warning-heavy language.
+Media-query conditions, percentages, viewport units, and unitless geometry can remain local when CSS needs them for context. They must not become an independent visual scale.
 
-## Colors
+## Design direction
 
-The palette combines clean cool neutrals with one confident action color and three calm household-care islands.
+The creative direction is **Color islands**. Familiar household controls sit on open white or ice surfaces. Broad sky, mint, and lilac fields make choices clear and give the product its identity. Deep navy carries the hierarchy. Cobalt identifies actions, focus, and active state.
 
-### Primary
+The interface is calm, direct, and supportive. It helps the household start and continue a Run without showing debt, urgency, or competition.
 
-- **Action Cobalt**: The main action, active navigation, and focus indicator.
-- **Deep Navy**: Headings, strong labels, and authored line icons.
+The main rules are:
 
-### Secondary
+- Use broad color fields for important choices. Do not turn them into small status badges.
+- Keep one clear primary action in each state.
+- Use spacing and color before borders or shadows.
+- Use asymmetric soft shapes for signature islands. Do not put every region in a rounded card.
+- Show count-ups and completed work. Do not show denominators, outstanding counts, scores, lateness, or progress bars.
+- Keep authored content neutral. Due Tasks do not get warning treatment.
 
-- **Open Sky**: The welcome still-life field and Weekly Routine.
-- **Fresh Mint**: The Fortnightly Routine and selected text.
-- **Soft Lilac**: The Quarterly Routine and quiet atmosphere.
+## Foundations
 
-### Tertiary
+### Color
 
-- **Warm Coral**: One small decorative counterpoint. It never means danger, debt, or an overdue state.
+Use the ink tokens for text hierarchy and the white and ice tokens for the main surfaces. Use cobalt for primary actions, focus, and active controls. Sky, mint, and lilac organize Routine, Room, and Settings choices. Stronger forms of these colors support selection and small accents.
 
-### Neutral
+Success and error colors have explicit state tokens. Error feedback can use the soft error surface. Coral is a rare decorative accent and never means danger, debt, or urgency.
 
-- **Clean White**: The main application surface and control ground.
-- **Cool Ice**: The outer tablet ground and PWA theme color.
-- **Muted Navy**: Supporting copy and inactive navigation.
+### Typography
 
-**The Color-Island Rule.** Use sky, mint, and lilac as broad navigable fields. Do not reduce them to small badges on white cards.
+The interface uses Manrope with a sans-serif fallback. Use the type tokens in `globals.css`; do not restate their values here.
 
-**The Coral Restraint Rule.** Coral is decorative and rare. Do not use it for warnings.
+- Display type is for the Home greeting and completion message only.
+- Headline type identifies a screen or major section.
+- Title type identifies strong choices such as Routines and Rooms.
+- Body type carries instructions, Task text, Notes, and form content.
+- Small type is reserved for supporting information. It must remain readable at 200% text size.
+- Supporting copy uses the measure tokens. Do not let paragraphs stretch across a wide panel.
 
-## Typography
+Use sentence case in both interface locales. Keep the domain terms from `CONTEXT.md` and proper names capitalized where the language requires it.
 
-**Display Font:** Manrope (with sans-serif fallback)  
-**Body Font:** Manrope (with sans-serif fallback)
+### Spacing and grouping
 
-**Character:** Manrope gives the interface a rounded, contemporary voice while keeping household instructions clear. Tight display spacing adds confidence; body copy remains open and easy to scan.
+Use only the spacing tokens. Space inside a group must be smaller than the space around it. A heading, its description, and its controls form one group. Separate the next section with a larger gap.
 
-### Hierarchy
+Phone layouts use one main column. Wide layouts can use two columns when the content remains in a clear reading and keyboard order.
 
-- **Display** (780, responsive 2.55–4.8 rem, 0.98): Short greetings only.
-- **Headline** (780, responsive 1.75–2.15 rem, 1.05): Primary section headings.
-- **Title** (760, responsive 1.15–1.42 rem): Routine names and other strong choices.
-- **Body** (520, 1 rem, 1.5): Instructions and supporting text.
-- **Label** (750, 0.875 rem): Compact controls such as the language toggle.
+### Shape and depth
 
-**The Short-Display Rule.** Keep display text short enough to stay clear at a tight line height. Use body styles for explanations.
+Controls use compact radii. Routine, Room, completion, Settings, and decorative islands use named asymmetric radii. Full pills are for compact toggles and choice controls.
 
-## Layout
+The system is almost flat. Use the action shadow for an enabled primary action, the Room shadow for navigable Room islands, the toast shadow for transient feedback, and the surface shadow for the contained wide-screen panel. Do not add a shadow only for decoration.
 
-Phone screens use a compact 70 px header, a two-column welcome region, a vertically stacked Routine list, and fixed bottom navigation. Main content keeps 20 px side padding. Each Routine field is at least 108 px high, with 12 px between fields.
+### Icons and art
 
-At 760 px and wider, the interface becomes a contained two-column household panel rather than a stretched phone. The panel is at most 1020 px wide. The welcome moves left, Routines move right, and navigation becomes part of the panel flow. The outer cool-ice ground and restrained ambient gradients make the panel distinct.
+Lucide icons use a consistent authored line style. Decorative icons are hidden from assistive technology. Icon-only controls need a localized accessible name.
 
-Keep touch targets at least 46–48 px high. Preserve space around the greeting and the large color fields. Do not add dense summary cards above the main action.
+The Home care image and the simple island linework support the composition. They do not carry information. The Home image can settle into place when reduced motion is not requested.
 
-## Elevation & Depth
+## Responsive structure
 
-The system is almost flat. Tonal fields and overlapping shapes carry most of the hierarchy. Use a soft action shadow for the primary button, a low ambient shadow for the contained tablet surface, and image-native depth inside the decorative still life.
+Phone and wall-mounted tablet are both input devices. Both people can Tick Tasks while they clean.
 
-### Shadow Vocabulary
+On a phone, each application surface fills the viewport. Home and Settings use the bottom navigation. The Run flow removes that navigation so the current cleaning action stays prominent. Sticky action regions respect the safe-area inset.
 
-- **Action lift** (`0 14px 28px -16px rgb(7 92 245 / 65%)`): The enabled cobalt primary action.
-- **Ambient float** (`0 22px 52px -36px rgb(27 43 94 / 42%)`): Small white icon discs and quiet floating controls.
-- **Tablet surface** (`0 34px 90px -58px rgb(16 24 77 / 52%)`): The wide-screen application panel only.
+At the wide breakpoint declared in `globals.css`, the application becomes a contained panel on the ice ground:
 
-**The Flat-First Rule.** Use color and spacing before adding a shadow. A shadow must explain a control or contained surface.
+- Home becomes a two-column composition with the welcome and care image beside the Routine choices.
+- Run and Settings use the same contained surface and larger targets, text, gaps, and Room islands.
+- Settings forms can use two columns, while wide fields span the full form.
+- The bottom navigation joins the Home or Settings panel flow instead of floating over it.
 
-## Shapes
+All routes must reflow at a narrow phone viewport when the root text size is doubled. Horizontal page scrolling is a failure.
 
-Controls use compact 14–16 px corners or full pills. Signature Routine fields use large, asymmetric corner profiles from 28 px to 84 px. The welcome image field uses an asymmetric organic curve. White circular icon grounds help line icons read against colored fields.
+## Screen patterns
 
-Do not make every region a rounded rectangle. The contrast between open white sections and shaped color islands is part of the identity.
+### Home
 
-## Components
+Home has three exclusive states.
 
-### Buttons
+**Ready to start:** Show the greeting, short instruction, care image, and active Routine choices. Routines come from household content; there are no fixed names or fixed count. Present them as one named radio group. Cycle the sky, mint, and lilac island treatments when the list is longer than the visual set. Put the primary start action after the Routine list so visual and keyboard order agree.
 
-- **Shape:** Compact and gently curved (14 px) with a minimum height of 48 px.
-- **Primary:** Action cobalt with white text and strong weight.
-- **Hover / Focus:** Deepen to action-cobalt-deep on hover. Use a 3 px cobalt focus outline with a 4 px offset.
-- **Disabled:** Keep the shape and label legible, remove the action shadow, add a lock icon, and explain availability nearby.
+When no active Routine exists, keep the start action disabled and explain how to add one in Settings. When the last closed Run can be reopened, show one quiet resumable-Run island before the Routine list.
 
-### Cards / Containers
+**Run open:** Replace the greeting with the in-progress message and an absolute Tasks-done count. Show one primary action to continue the Run and show its current Routine. Do not show alternative Routines or another start action.
 
-- **Corner Style:** Routine fields use distinct asymmetric profiles; the tablet surface uses a 42 px outer radius.
-- **Background:** White for the main surface; sky, mint, and lilac for Routine fields.
-- **Shadow Strategy:** Flat by default; use the documented ambient shadows only.
-- **Border:** No visible border on color islands.
+### Run overview
+
+The Run header shows the wordmark, current Routine, and absolute Tasks-done count. The default overview is Rooms. Each Room is a broad navigable island with its name and its own count-up.
+
+A segmented choice switches between Rooms and all Tasks. The all-Tasks view is secondary and remembers the choice on the device. Keep `Mark as done` after the overview content. An empty Run uses a neutral empty state and still allows the Run to close.
+
+### Room Task view
+
+The Room view uses a headline, a back control, and a named Room switcher. Group labels are quiet subheadings. They organize Tasks but are not controls and do not carry progress.
+
+Each Task has a large Tick target, a visible control state, and an optional Note below it. A Tick changes immediately and then synchronizes. If synchronization fails, restore the confirmed state and show a localized inline retry action for that Task.
+
+The bottom action moves to the next Room. In the last Room, it returns to the Room overview. The action is large enough for phone and wall-mounted tablet use.
+
+### Completion and undo
+
+Closing a Run opens a dedicated completion surface. Use display type, a calm completion island, an absolute Tasks-done count, and a Home link. Do not show a fraction or compare the result with the Presented set.
+
+Show the temporary undo toast as a status message after close. It contains one clear undo action. A failed close or reopen uses the persistent localized alert region.
+
+### Settings
+
+Settings uses one long management page with in-page links to Routines, Rooms, Tasks, and archived content. Each active-content manager has a heading, a short description, a toned icon, one add disclosure, and editable content rows.
+
+- Routine forms manage the name, Cadence, and included Routine.
+- Room forms manage the name.
+- Task forms manage the Task text, Routine, Room, optional Group, and optional Note.
+- Task creation stays unavailable until an active Routine and Room exist. Explain this dependency next to the unavailable state.
+
+Add and edit forms use visible labels. Add disclosures open automatically for an empty manager. Existing rows open into an editor. Archive is a separate nested disclosure with explanatory text so it has more friction than save.
+
+The archived-content manager groups archived Routines, Rooms, and Tasks. Restore is direct when the required active references exist. If an archived Task depends on an archived Room or Routine, explain the dependency instead of offering an action that cannot succeed.
+
+### Authentication and supporting pages
+
+The sign-in page uses a split composition on wide screens and one column on phones. Its introduction, language toggle, Clerk form, and cookie-information link use the same type and color system.
+
+Access denied, not found, and unexpected error pages reuse the quiet introduction pattern. Give the user one clear recovery action. Never show a thrown error message in the interface.
+
+The cookie-information page is a narrow reading surface with the wordmark, language toggle, clear heading order, and a route back to sign in.
+
+### Loading, empty, and error states
+
+Run and Settings loading routes use skeletons that match the destination layout. The visible skeleton is decorative. A localized screen-reader status announces loading, and the route is marked busy.
+
+Empty states stay close to the content they explain. They use neutral surfaces and direct next-step copy. Errors use localized dictionary text, an alert or live region, and a retry only when retry can help.
+
+## Component rules
+
+### Actions
+
+The cobalt button is the primary action. It has hover, active, focus, pending, and disabled states. A pending label must acknowledge the action immediately. Disabled controls stay legible and have nearby explanatory text when the reason is not clear.
+
+Secondary actions use a quieter fill, outline, or text treatment. Destructive archive actions use the error color only inside the explicit archive disclosure. Links that look like buttons must keep link behavior and accessible focus.
+
+### Choice controls
+
+Routine islands are native radio controls with full-field labels. Segmented Run choices and the Room switcher use pressed buttons. Selection must remain clear without color alone, and every target must meet the current target-size tokens.
 
 ### Navigation
 
-The phone navigation is fixed to the bottom and has three equal areas. Icons use a consistent 2 px line weight. Inactive items use muted navy. The active Home item uses cobalt and a short top indicator. Focus uses the global cobalt outline.
+Primary navigation contains Home and Settings. The current destination uses cobalt and `aria-current`. Run navigation is a separate named landmark that contains the wordmark, Routine, and count-up.
 
-### Routine Field
+### Forms and disclosures
 
-Each Routine is one broad, disabled Phase 1 field with a white circular calendar icon, a strong title, and faint authored linework. Weekly uses sky and plant linework; Fortnightly uses mint and a cleaning caddy; Quarterly uses lilac and a storage box with a plant. When these fields become active, preserve the silhouette and clear full-field target.
+Place each label above its field. Use one column on phones and the documented wide form grid when space allows. Keep success and error feedback in the form footer so it stays connected to the action.
 
-### Language Toggle
+Use native `details` and `summary` for add, edit, and archive disclosures. The summary is the target. Keep its chevron and focus state consistent.
 
-Use a white 46 px pill with a fine deep-navy translucent border, a globe icon, and the current two-letter language code. The action changes the server-readable language cookie so the next render has no language flash.
+### Feedback and motion
 
-## Do's and Don'ts
+Every action must show a visible change within 100 ms. Optimistic Ticks, pending labels, disabled pending actions, inline form messages, alerts, and the undo toast are the standard feedback patterns.
 
-### Do:
+Motion is short and functional. Do not animate core navigation or Task state in a way that delays input. Honor `prefers-reduced-motion` for optional motion.
 
-- **Do** use broad sky, mint, and lilac fields to organize the primary choices.
-- **Do** keep copy short, direct, supportive, and compatible with ASD-STE100 Simplified Technical English.
-- **Do** use deep navy for readable hierarchy and cobalt for actions, focus, and active state.
-- **Do** keep motion small and optional. The still-life settle runs only when reduced motion is not requested.
-- **Do** adapt the composition at 760 px instead of scaling the phone layout.
+## Accessibility and language
 
-### Don't:
+- Meet WCAG 2.2 Level AA contrast and reflow requirements.
+- Keep keyboard order equal to visual order. The vertical position of successive stops must not move backward through the page.
+- Use real buttons, links, labels, headings, lists, landmarks, and form controls.
+- Keep focus visible with the global focus tokens.
+- Keep interactive targets usable with occupied hands on both supported device types.
+- Associate status and error text with live regions. Keep the Run alert mounted so repeated failures announce.
+- Put all interface copy in `src/i18n/config.ts` in English and Finnish. Content entered by the household is not translated.
+- Use the domain terms in `CONTEXT.md`. A Routine is not a checklist, a Room is not an area, and a Task is the only checkable thing.
 
-- **Don't** build a neutral dashboard from many small white cards.
-- **Don't** show scores, percentages, denominators, task debt, competitive coaching, or warning-heavy states.
-- **Don't** use coral as a warning color.
-- **Don't** add shadows only for decoration.
-- **Don't** copy reference brands, logos, product claims, or device imagery.
+## Maintenance checklist
+
+When the interface changes:
+
+1. Add or change tokens in `src/app/globals.css` before component rules use them.
+2. Reuse a semantic class or add one that states the pattern's role.
+3. Update this file when a screen, state, or reusable pattern changes.
+4. Check phone and wall-mounted tablet layouts with both locales and realistic invented content.
+5. Test keyboard order, visible focus, 200% text size, reduced motion, loading, empty, pending, success, and failure states.
+6. Check every new count and status against ADR 0002 before it ships.
