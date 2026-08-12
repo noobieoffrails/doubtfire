@@ -5,7 +5,10 @@ import postgres, { type Sql } from "postgres";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import * as schema from "../db/schema";
-import { createContentCatalog } from "./content-catalog";
+import {
+  ContentRestoreBlockedError,
+  createContentCatalog,
+} from "./content-catalog";
 
 const testDatabaseUrl = process.env.TEST_DATABASE_URL;
 const describeWithPostgres = testDatabaseUrl ? describe : describe.skip;
@@ -196,6 +199,63 @@ describeWithPostgres("content catalog", () => {
     );
   });
 
+  it("restores an archived Task", async () => {
+    const catalog = createContentCatalog(database);
+    const routine = await catalog.createRoutine({
+      cadenceDays: 7,
+      includesRoutineId: null,
+      name: "Weekly",
+    });
+    const room = await catalog.createRoom({ name: "Kitchen" });
+    const task = await catalog.createTask({
+      groupLabel: null,
+      note: null,
+      roomId: room.id,
+      routineId: routine.id,
+      text: "Wipe the worktops",
+    });
+    await catalog.archiveTask(task.id);
+
+    await catalog.restoreTask(task.id);
+
+    await expect(catalog.list()).resolves.toMatchObject({
+      tasks: [
+        {
+          id: task.id,
+          archivedAt: null,
+          text: "Wipe the worktops",
+        },
+      ],
+    });
+  });
+
+  it("keeps a Task archived until its Room and Routine are active", async () => {
+    const catalog = createContentCatalog(database);
+    const routine = await catalog.createRoutine({
+      cadenceDays: 7,
+      includesRoutineId: null,
+      name: "Weekly",
+    });
+    const room = await catalog.createRoom({ name: "Kitchen" });
+    const task = await catalog.createTask({
+      groupLabel: null,
+      note: null,
+      roomId: room.id,
+      routineId: routine.id,
+      text: "Wipe the worktops",
+    });
+    await catalog.archiveTask(task.id);
+    await catalog.archiveRoom(room.id);
+
+    await expect(catalog.restoreTask(task.id)).rejects.toBeInstanceOf(
+      ContentRestoreBlockedError,
+    );
+    const content = await catalog.list({ includeArchived: true });
+    expect(content.tasks).toContainEqual(
+      expect.objectContaining({ id: task.id, archivedAt: expect.any(Date) }),
+    );
+  });
+
   it("archives a Routine and repairs the Includes chain", async () => {
     const catalog = createContentCatalog(database);
     const weekly = await catalog.createRoutine({
@@ -236,6 +296,59 @@ describeWithPostgres("content catalog", () => {
     );
   });
 
+  it("restores an archived Routine and its active Tasks", async () => {
+    const catalog = createContentCatalog(database);
+    const routine = await catalog.createRoutine({
+      cadenceDays: 7,
+      includesRoutineId: null,
+      name: "Weekly",
+    });
+    const room = await catalog.createRoom({ name: "Kitchen" });
+    const task = await catalog.createTask({
+      groupLabel: null,
+      note: null,
+      roomId: room.id,
+      routineId: routine.id,
+      text: "Wipe the worktops",
+    });
+    await catalog.archiveRoutine(routine.id);
+
+    await catalog.restoreRoutine(routine.id);
+
+    await expect(catalog.list()).resolves.toMatchObject({
+      routines: [{ id: routine.id, archivedAt: null, name: "Weekly" }],
+      tasks: [{ id: task.id, archivedAt: null }],
+    });
+  });
+
+  it("restores a Routine with an active Includes chain", async () => {
+    const catalog = createContentCatalog(database);
+    const weekly = await catalog.createRoutine({
+      cadenceDays: 7,
+      includesRoutineId: null,
+      name: "Weekly",
+    });
+    const fortnightly = await catalog.createRoutine({
+      cadenceDays: 14,
+      includesRoutineId: weekly.id,
+      name: "Fortnightly",
+    });
+    await catalog.archiveRoutine(fortnightly.id);
+    await catalog.archiveRoutine(weekly.id);
+
+    await catalog.restoreRoutine(fortnightly.id);
+
+    await expect(catalog.list()).resolves.toMatchObject({
+      routines: [
+        {
+          id: fortnightly.id,
+          archivedAt: null,
+          includesRoutineId: null,
+        },
+      ],
+    });
+  });
+
   it("archives a Room and withdraws its Tasks from active content", async () => {
     const catalog = createContentCatalog(database);
     const routine = await catalog.createRoutine({
@@ -262,6 +375,31 @@ describeWithPostgres("content catalog", () => {
     expect(archivedContent.tasks).toContainEqual(
       expect.objectContaining({ id: task.id, archivedAt: null }),
     );
+  });
+
+  it("restores an archived Room and its active Tasks", async () => {
+    const catalog = createContentCatalog(database);
+    const routine = await catalog.createRoutine({
+      cadenceDays: 7,
+      includesRoutineId: null,
+      name: "Weekly",
+    });
+    const room = await catalog.createRoom({ name: "Kitchen" });
+    const task = await catalog.createTask({
+      groupLabel: null,
+      note: null,
+      roomId: room.id,
+      routineId: routine.id,
+      text: "Wipe the worktops",
+    });
+    await catalog.archiveRoom(room.id);
+
+    await catalog.restoreRoom(room.id);
+
+    await expect(catalog.list()).resolves.toMatchObject({
+      rooms: [{ id: room.id, archivedAt: null, name: "Kitchen" }],
+      tasks: [{ id: task.id, archivedAt: null }],
+    });
   });
 
   it("refuses an Includes cycle", async () => {
